@@ -5,6 +5,5 @@ scikit-learn
 sqlalchemy
 python-dotenv
 python-magic
-python-magic-bin
-python-magic
+
         
