@@ -10,6 +10,8 @@ python-magic
 # Web Framework
 fastapi
 uvicorn
+flask
+
 
 # Database / ORM
 sqlalchemy
