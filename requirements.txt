@@ -10,6 +10,11 @@ python-magic
 # Web Framework
 flask
 gunicorn
+flask_sqlalchemy
+python-dotenv
+psycopg2-binary
+flask
+gunicorn
 sqlalchemy
 pandas
 fastapi
