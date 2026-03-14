@@ -8,6 +8,10 @@ python-magic
 
         
 # Web Framework
+flask
+gunicorn
+sqlalchemy
+pandas
 fastapi
 uvicorn
 flask
