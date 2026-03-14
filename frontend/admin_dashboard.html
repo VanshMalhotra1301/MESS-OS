@@ -1,0 +1,3688 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mess Admin Pro | Enterprise SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const CURRENT_MESS_ID = {{ user_id }};
+        const CURRENT_ORG_NAME = "{{ org_name }}";
+    </script>
+    <style>
+        :root {
+            /* Enterprise Palette - Stripe/Linear Inspired */
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #e0e7ff;
+            --secondary: #64748b;
+            --bg-body: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-sidebar: #0f172a;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-inverse: #ffffff;
+
+            --border: #e2e8f0;
+            --border-focus: #4f46e5;
+
+            --success: #059669;
+            --success-bg: #d1fae5;
+            --danger: #e11d48;
+            --danger-bg: #ffe4e6;
+            --warning: #d97706;
+
+            /* Refined Elevations */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+
+            --nav-height: 64px;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* ============================
+           SIDEBAR
+           ============================ */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-sidebar);
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #1e293b;
+            transition: width 0.3s ease;
+            z-index: 50;
+        }
+
+        .brand-section {
+            height: var(--nav-height);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            color: var(--text-inverse);
+            font-weight: 700;
+            font-size: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .brand-section i {
+            margin-right: 12px;
+            color: var(--primary);
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 24px 12px;
+            overflow-y: auto;
+        }
+
+        .nav-category {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            padding-left: 12px;
+            color: #475569;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            margin-bottom: 4px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            font-weight: 500;
+            color: #94a3b8;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: var(--text-inverse);
+            transform: translateX(4px);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary);
+            color: var(--text-inverse);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .nav-item i {
+            width: 24px;
+            margin-right: 10px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .nav-item:hover i {
+            transform: scale(1.1);
+        }
+
+        .user-profile {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), #818cf8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .user-info h4 {
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .user-info span {
+            font-size: 11px;
+            display: block;
+        }
+
+        /* ============================
+           MAIN CONTENT SHELL
+           ============================ */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        .top-header {
+            height: var(--nav-height);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .breadcrumbs {
+            font-size: 14px;
+            color: var(--secondary);
+        }
+
+        .breadcrumbs span {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+        }
+
+        .status-badge:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        .section-view {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section-view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.99);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ============================
+           DASHBOARD GRID
+           ============================ */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+            border-color: rgba(79, 70, 229, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-top: 4px;
+        }
+
+        .card-meta {
+            font-size: 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .trend-up {
+            color: var(--success);
+        }
+
+        .trend-down {
+            color: var(--danger);
+        }
+
+        /* AI Insight Panel */
+        .ai-panel {
+            grid-column: span 1;
+            background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4);
+            position: relative;
+        }
+
+        .ai-panel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .ai-panel .card-title {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .ai-panel .card-value {
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .ai-panel .card-meta {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        /* Operations Console */
+        .ops-console {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .ops-header {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Inputs & Buttons */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--secondary);
+            margin-bottom: 6px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            background: var(--bg-body);
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-main);
+        }
+
+        input:focus,
+        select:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 4px 10px rgba(225, 29, 72, 0.2);
+        }
+
+        .btn-danger:hover {
+            background: #be123c;
+            box-shadow: 0 6px 15px rgba(225, 29, 72, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Timeline / Logs */
+        .timeline {
+            border-left: 2px solid var(--border);
+            margin-left: 10px;
+            padding-left: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            position: relative;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .log-item::before {
+            content: '';
+            position: absolute;
+            left: -27px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--secondary);
+        }
+
+        .log-item.success::before {
+            border-color: var(--success);
+            background: var(--success-bg);
+        }
+
+        .log-item.info::before {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .log-item.error::before {
+            border-color: var(--danger);
+            background: var(--danger-bg);
+        }
+
+        .log-content {
+            font-size: 13px;
+            font-weight: 500;
+            display: block;
+        }
+
+        .log-time {
+            font-size: 11px;
+            color: var(--secondary);
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--secondary);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            background: #f8fafc;
+        }
+
+        td {
+            padding: 14px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-main);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .badge-success {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .badge-primary {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .badge-danger {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        /* Chat Widget */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            background: var(--bg-surface);
+            box-shadow: var(--shadow-md);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: #f0f2f5;
+        }
+
+        @keyframes messageSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(12px) scale(0.98);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .chat-msg {
+            max-width: 75%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 14px;
+            position: relative;
+            line-height: 1.5;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            animation: messageSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .chat-msg:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .chat-msg.admin {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--primary), #6366f1);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-msg.ngo {
+            align-self: flex-start;
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-meta {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 6px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chat-msg.admin .chat-meta {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .chat-msg.ngo .chat-meta {
+            color: var(--text-muted);
+        }
+
+        .chat-input-area {
+            padding: 16px 24px;
+            background: white;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .chat-input-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .chat-input-area input {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 30px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .chat-input-area input:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+            outline: none;
+        }
+
+        .chat-input-area button {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #6366f1);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            padding: 0;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+        }
+
+        .chat-input-area button:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3);
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 14px 18px;
+            background: white;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            animation: messageSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            display: none;
+            align-self: flex-start;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--secondary);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes typingBounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0.4);
+                opacity: 0.5;
+            }
+
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Micro-interactions & Polish */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                display: none;
+            }
+
+            /* Simplified for demo */
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ============================
+           MENU-AWARE ANALYTICS
+           ============================ */
+
+        /* Filter pill bar */
+        .meal-filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .meal-filter-btn {
+            padding: 5px 14px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: white;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meal-filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+            transform: translateY(-1px);
+        }
+
+        .meal-filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+        }
+
+        .meal-filter-btn.active-breakfast {
+            background: #f97316;
+            border-color: #f97316;
+            color: white;
+            box-shadow: 0 4px 10px rgba(249, 115, 22, 0.25);
+        }
+
+        .meal-filter-btn.active-lunch {
+            background: #059669;
+            border-color: #059669;
+            color: white;
+            box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
+        }
+
+        .meal-filter-btn.active-snack {
+            background: #d97706;
+            border-color: #d97706;
+            color: white;
+            box-shadow: 0 4px 10px rgba(217, 119, 6, 0.25);
+        }
+
+        .meal-filter-btn.active-dinner {
+            background: #7c3aed;
+            border-color: #7c3aed;
+            color: white;
+            box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);
+        }
+
+        /* Custom floating tooltip */
+        #menuTooltip {
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            transform: translateY(6px);
+            min-width: 240px;
+            max-width: 300px;
+        }
+
+        #menuTooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tooltip-card {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+            color: white;
+        }
+
+        .tooltip-date {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .tooltip-meal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .tooltip-meal-badge.breakfast {
+            background: rgba(249, 115, 22, 0.25);
+            color: #fb923c;
+        }
+
+        .tooltip-meal-badge.lunch {
+            background: rgba(5, 150, 105, 0.25);
+            color: #34d399;
+        }
+
+        .tooltip-meal-badge.snack {
+            background: rgba(217, 119, 6, 0.25);
+            color: #fbbf24;
+        }
+
+        .tooltip-meal-badge.dinner {
+            background: rgba(124, 58, 237, 0.25);
+            color: #a78bfa;
+        }
+
+        .tooltip-menu-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+
+        .menu-tag {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .tooltip-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .tooltip-stat {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+
+        .tooltip-stat-label {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .tooltip-stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .tooltip-stat-value.predicted {
+            color: #818cf8;
+        }
+
+        .tooltip-stat-value.actual {
+            color: #34d399;
+        }
+
+        .tooltip-hint {
+            margin-top: 10px;
+            font-size: 10px;
+            color: #475569;
+            text-align: center;
+        }
+
+        /* Detail side panel */
+        #panelOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.25);
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(2px);
+        }
+
+        #panelOverlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #menuDetailPanel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 360px;
+            height: 100vh;
+            background: white;
+            z-index: 201;
+            box-shadow: -20px 0 60px rgba(0, 0, 0, 0.12);
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #menuDetailPanel.open {
+            transform: translateX(0);
+        }
+
+        .panel-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .panel-meal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .panel-close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 16px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .panel-close-btn:hover {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+        }
+
+        .panel-attendance-bar {
+            margin-bottom: 20px;
+        }
+
+        .attendance-bar-track {
+            height: 8px;
+            background: #f1f5f9;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .attendance-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #4f46e5, #10b981);
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .panel-menu-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .panel-menu-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .panel-menu-tag {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 5px 12px;
+            border-radius: 999px;
+            border: 1.5px solid;
+            transition: transform 0.15s;
+        }
+
+        .panel-menu-tag:hover {
+            transform: translateY(-1px);
+        }
+
+        .panel-menu-tag.breakfast {
+            background: #fff7ed;
+            border-color: #fed7aa;
+            color: #c2410c;
+        }
+
+        .panel-menu-tag.lunch {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+
+        .panel-menu-tag.snack {
+            background: #fffbeb;
+            border-color: #fde68a;
+            color: #92400e;
+        }
+
+        .panel-menu-tag.dinner {
+            background: #f5f3ff;
+            border-color: #ddd6fe;
+            color: #5b21b6;
+        }
+
+        .panel-stat-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .panel-stat-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .panel-stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .panel-stat-num {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .panel-stat-num.predicted {
+            color: #4f46e5;
+        }
+
+        .panel-stat-num.actual {
+            color: #10b981;
+        }
+
+        /* Donation status badges */
+        .badge-broadcasted {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .badge-accepted {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .badge-collected {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        /* Attendance drop indicator */
+        .drop-pct {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+
+        .drop-pct.good {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .drop-pct.medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .drop-pct.high {
+            background: #ffe4e6;
+            color: #be123c;
+        }
+
+        /* Menu cell */
+        .menu-cell {
+            font-size: 12px;
+            color: var(--text-muted);
+            max-width: 220px;
+            line-height: 1.5;
+        }
+
+        .menu-cell .menu-chip {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-size: 11px;
+            font-weight: 500;
+            margin: 1px;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column-reverse;
+            /* Stack new toasts on top/bottom clearly */
+            gap: 12px;
+            pointer-events: none;
+            /* Let clicks pass through container */
+        }
+
+        .toast {
+            min-width: 300px;
+            background: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-left: 4px solid var(--primary);
+            pointer-events: auto;
+            /* Re-enable clicks for the toast itself */
+            position: relative;
+            z-index: 10000;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            font-size: 20px;
+        }
+
+        .toast.success {
+            border-left-color: var(--success);
+        }
+
+        .toast.success .toast-icon {
+            color: var(--success);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        .toast.error .toast-icon {
+            color: var(--danger);
+        }
+
+        .toast.info {
+            border-left-color: var(--primary);
+        }
+
+        .toast.info .toast-icon {
+            color: var(--primary);
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .toast-message {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <aside class="sidebar">
+        <div class="brand-section">
+            <i class="fa-solid fa-cube"></i>
+            MessOS <span style="font-weight:300; margin-left:4px; opacity:0.7;"></span>
+        </div>
+
+        <div class="nav-menu">
+            <div class="nav-category">Overview</div>
+            <div class="nav-item active" onclick="switchTab('dashboard', this)">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard
+            </div>
+
+            <div class="nav-category">Operations</div>
+            <div class="nav-item" onclick="switchTab('menu', this)">
+                <i class="fa-regular fa-calendar-check"></i> Menu Planner
+            </div>
+            <div class="nav-item" onclick="switchTab('attendance', this)">
+                <i class="fa-solid fa-users-line"></i> Attendance
+            </div>
+
+            <div class="nav-category">Admin</div>
+            <div class="nav-item" onclick="switchTab('donations', this)">
+                <i class="fa-solid fa-hand-holding-heart"></i> Donation History
+            </div>
+            <div class="nav-item" onclick="switchTab('sustainability', this)">
+                <i class="fa-solid fa-leaf"></i> Sustainability Impact
+                <span class="badge badge-success" style="margin-left:auto; font-size:10px;">ESG</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('settings', this)">
+                <i class="fa-solid fa-gear"></i> Settings
+            </div>
+            <div class="nav-item" onclick="switchTab('chat', this)">
+                <i class="fa-regular fa-comments"></i> NGO Support Chat
+                <span class="badge badge-primary" style="margin-left:auto; font-size:10px;">New</span>
+            </div>
+        </div>
+
+        <div class="user-profile">
+            <div class="avatar"><i class="fa-solid fa-user-tie"></i></div>
+            <div class="user-info">
+                <h4 id="displayOrgName">{{ org_name }}</h4>
+                <span>Mess Admin</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+
+        <header class="top-header">
+            <div class="breadcrumbs">
+                Mess OS / <span id="pageTitle">Dashboard</span>
+            </div>
+            <div class="header-actions">
+                <div class="status-badge" style="background: #f1f5f9; color: #64748b;">
+                    <i class="fa-regular fa-clock"></i> <span id="liveClock">--:--</span>
+                </div>
+                <div class="status-badge" id="connStatus"
+                    style="background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger);">
+                    <div class="pulse-dot" style="width:6px; height:6px; background:currentColor; border-radius:50%;">
+                    </div>
+                    <span id="connText">Offline</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-area">
+
+            <div id="dashboard" class="section-view active">
+
+                <!-- Section Header -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <div>
+                        <h1 style="font-size:22px; font-weight:800; color:var(--text-main); margin-bottom:2px;">
+                            Operations Dashboard</h1>
+                        <p style="font-size:13px; color:var(--text-muted);" id="dashDate">Loading...</p>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <div class="status-badge" style="background:#f0fdf4; color:#16a34a; border-color:#bbf7d0;">
+                            <i class="fa-solid fa-circle" style="font-size:7px;"></i> Live Data
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <!-- AI Forecast -->
+                    <div class="card ai-panel">
+                        <div
+                            style="position:absolute; top:0; right:0; width:120px; height:120px; background:radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%); pointer-events:none;">
+                        </div>
+                        <div class="card-header">
+                            <span class="card-title">AI Forecast</span>
+                            <div
+                                style="width:36px; height:36px; background:rgba(255,255,255,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                        </div>
+                        <div class="card-value" id="aiDisplay" style="font-size:36px;">--</div>
+                        <div class="card-meta" style="margin-top:12px;">
+                            <span
+                                style="background:rgba(255,255,255,0.15); padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600;"><i
+                                    class="fa-solid fa-bolt" style="margin-right:4px;"></i>Expected Plates Today</span>
+                        </div>
+                    </div>
+
+                    <!-- Today's Actual Attendance -->
+                    <div class="card" style="border-top: 3px solid #4f46e5;">
+                        <div class="card-header">
+                            <span class="card-title">Today's Attendance</span>
+                            <div
+                                style="width:36px; height:36px; background:#e0e7ff; color:#4f46e5; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="card-value" id="todayActual" style="font-size:36px;"><i
+                                class="fa-solid fa-circle-notch fa-spin" style="font-size:22px; color:#cbd5e1;"></i>
+                        </div>
+                        <div class="card-meta" id="todayActualMeta" style="color:var(--text-muted);"><i
+                                class="fa-solid fa-clock" style="margin-right:4px;"></i>Updated from attendance logs
+                        </div>
+                    </div>
+
+                    <!-- Surplus Food -->
+                    <div class="card" style="border-top: 3px solid #f97316;">
+                        <div class="card-header">
+                            <span class="card-title">Estimated Surplus</span>
+                            <div
+                                style="width:36px; height:36px; background:#fff7ed; color:#f97316; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid fa-bowl-food"></i>
+                            </div>
+                        </div>
+                        <div class="card-value" id="surplusKg" style="font-size:36px;"><i
+                                class="fa-solid fa-circle-notch fa-spin" style="font-size:22px; color:#cbd5e1;"></i>
+                        </div>
+                        <div class="card-meta" id="surplusMeta" style="color:var(--text-muted);"><i
+                                class="fa-solid fa-scale-balanced" style="margin-right:4px;"></i>Based on prediction gap
+                        </div>
+                    </div>
+
+                    <!-- NGO Pickup Status -->
+                    <div class="card" style="border-top: 3px solid #059669;">
+                        <div class="card-header">
+                            <span class="card-title">NGO Pickups Today</span>
+                            <div
+                                style="width:36px; height:36px; background:#d1fae5; color:#059669; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid fa-truck-fast"></i>
+                            </div>
+                        </div>
+                        <div class="card-value" id="ngoPickups" style="font-size:36px;"><i
+                                class="fa-solid fa-circle-notch fa-spin" style="font-size:22px; color:#cbd5e1;"></i>
+                        </div>
+                        <div class="card-meta" id="ngoPickupsMeta" style="color:var(--text-muted);"><i
+                                class="fa-solid fa-handshake" style="margin-right:4px;"></i>Accepted donations</div>
+                    </div>
+                </div>
+
+                <!-- Operational Insights Row: 3 mini panels -->
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-bottom:24px;">
+                    <div class="card" style="padding:16px;">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                            <div
+                                style="width:32px; height:32px; background:#e0e7ff; color:#4f46e5; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
+                                <i class="fa-solid fa-chart-bar"></i>
+                            </div>
+                            <div
+                                style="font-size:12px; font-weight:700; color:var(--secondary); text-transform:uppercase; letter-spacing:0.04em;">
+                                Attendance Trend</div>
+                        </div>
+                        <div id="insightAttTrend"
+                            style="font-size:13px; color:var(--text-main); font-weight:500; line-height:1.5;">Analyzing
+                            records...</div>
+                    </div>
+                    <div class="card" style="padding:16px;">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                            <div
+                                style="width:32px; height:32px; background:#fef3c7; color:#d97706; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
+                                <i class="fa-solid fa-hand-holding-heart"></i>
+                            </div>
+                            <div
+                                style="font-size:12px; font-weight:700; color:var(--secondary); text-transform:uppercase; letter-spacing:0.04em;">
+                                Donation Stats</div>
+                        </div>
+                        <div id="insightDonation"
+                            style="font-size:13px; color:var(--text-main); font-weight:500; line-height:1.5;">Loading...
+                        </div>
+                    </div>
+                    <div class="card" style="padding:16px;">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                            <div
+                                style="width:32px; height:32px; background:#d1fae5; color:#059669; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
+                                <i class="fa-solid fa-fire"></i>
+                            </div>
+                            <div
+                                style="font-size:12px; font-weight:700; color:var(--secondary); text-transform:uppercase; letter-spacing:0.04em;">
+                                Recent Activity</div>
+                        </div>
+                        <div id="insightActivity"
+                            style="font-size:13px; color:var(--text-main); font-weight:500; line-height:1.5;">Loading...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-grid">
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3 style="font-size:16px; font-weight:700;">Consumption Analytics</h3>
+                                <p style="font-size:12px; color:var(--text-muted);">Predicted vs Actual — Menu-Aware</p>
+                            </div>
+                            <!-- Filter pills -->
+                            <div class="meal-filter-bar" id="mealFilterBar">
+                                <button class="meal-filter-btn active" data-filter="all"
+                                    onclick="setMealFilter('all', this)">
+                                    <i class="fa-solid fa-chart-line"></i> All
+                                </button>
+                                <button class="meal-filter-btn" data-filter="breakfast"
+                                    onclick="setMealFilter('breakfast', this)">
+                                    <i class="fa-solid fa-mug-hot"></i> Breakfast
+                                </button>
+                                <button class="meal-filter-btn" data-filter="lunch"
+                                    onclick="setMealFilter('lunch', this)">
+                                    <i class="fa-solid fa-utensils"></i> Lunch
+                                </button>
+                                <button class="meal-filter-btn" data-filter="snack"
+                                    onclick="setMealFilter('snack', this)">
+                                    <i class="fa-solid fa-cookie-bite"></i> Snack
+                                </button>
+                                <button class="meal-filter-btn" data-filter="dinner"
+                                    onclick="setMealFilter('dinner', this)">
+                                    <i class="fa-solid fa-bowl-rice"></i> Dinner
+                                </button>
+                            </div>
+                        </div>
+                        <div style="height: 300px; position: relative;">
+                            <canvas id="accuracyChart"></canvas>
+                            <div id="chartNoData"
+                                style="display:none; position:absolute; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:var(--text-muted);">
+                                <i class="fa-solid fa-filter" style="font-size:28px; opacity:0.3;"></i>
+                                <p style="font-size:13px;">No records for this meal type</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top:24px; max-height:400px; overflow-y:auto;">
+                        <div class="card-header">
+                            <div>
+                                <h3 style="font-size:16px; font-weight:700;"><i class="fa-solid fa-fire"
+                                        style="color:var(--warning); margin-right:6px;"></i> Menu Popularity Insights
+                                </h3>
+                                <p style="font-size:12px; color:var(--text-muted);">Real-time demand based on attendance
+                                    variance</p>
+                            </div>
+                            <div id="popularityStatusBadge" class="badge" style="background:#f1f5f9; color:#64748b;">
+                                Analyzing...</div>
+                        </div>
+                        <div id="menuPopularityContainer" style="margin-top:10px;">
+                            <div style="padding:40px; text-align:center; color:var(--text-muted); font-size:13px;">
+                                <i class="fa-solid fa-spinner fa-spin"
+                                    style="font-size:24px; opacity:0.5; margin-bottom:12px; display:block;"></i>
+
+                                Run a prediction to analyze item-level waste patterns
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ops-column">
+
+                        <div class="card" style="margin-bottom: 24px;">
+                            <div class="ops-header" style="color: var(--primary);">
+                                <i class="fa-solid fa-calculator"></i> Run Prediction
+                            </div>
+                            <div class="form-group">
+                                <div style="display:flex; gap:10px;">
+                                    <input type="date" id="predDate">
+                                    <select id="predMeal">
+                                        <option value="lunch">Lunch</option>
+                                        <option value="dinner">Dinner</option>
+                                        <option value="breakfast">Breakfast</option>
+                                        <option value="snack">Snack</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Registered Students</label>
+                                <input type="number" id="predStudents" value="{{ capacity }}">
+                            </div>
+                            <div class="form-group">
+                                <label>Actual Count (Training)</label>
+                                <input type="number" id="actualAttendance" placeholder="Post-meal count" value="0">
+                            </div>
+                            <button class="btn btn-primary" onclick="getPrediction()">
+                                <i class="fa-solid fa-bolt"></i> Analyze
+                            </button>
+                        </div>
+
+                        <div class="card" id="smartBroadcastCard"
+                            style="display:none; border: 1.5px solid var(--primary); background: linear-gradient(145deg, #ffffff, #fbbc0410); position:relative; overflow:hidden; margin-bottom: 24px;">
+                            <div
+                                style="position:absolute; top:-20px; right:-20px; font-size:100px; opacity:0.03; pointer-events:none;">
+                                <i class="fa-solid fa-microchip"></i>
+                            </div>
+                            <div class="ops-header" style="color: var(--primary); margin-bottom: 16px;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Smart Broadcast
+                                <div class="badge badge-primary" style="margin-left:auto; font-size:10px;">AI
+                                    Recommended</div>
+                            </div>
+                            <div style="font-size:13px; font-weight:600; color:var(--text-main); margin-bottom:12px;">
+                                <i class="fa-solid fa-bell" style="color:var(--warning); margin-right:6px;"></i>
+                                Detected Surplus:
+                                <div
+                                    style="margin-top:6px; padding:10px; background:var(--primary-light); border-radius:6px; color:var(--primary); font-weight:700;">
+                                    <span id="smartMealText">--</span> → <span id="smartKgText">--</span>kg food
+                                </div>
+                            </div>
+                            <div style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">
+                                Based on actual attendance dropping below the expected tally. Recommended action:
+                                Broadcast to NGO before expiry.
+                            </div>
+                            <button id="smartBroadcastBtn" class="btn btn-primary"
+                                style="width:100%; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);">
+                                <i class="fa-solid fa-paper-plane"></i> Send NGO Alert
+                            </button>
+                        </div>
+
+                        <div class="card">
+                            <div class="ops-header" style="color: var(--danger);">
+                                <i class="fa-solid fa-bullhorn"></i> Broadcast Surplus
+                            </div>
+                            <div class="form-group">
+                                <label>Food Description</label>
+                                <input type="text" id="wasteMeal" placeholder="e.g. Lunch – Dal, Roti, Sabzi">
+                            </div>
+                            <div class="form-group">
+                                <div style="display:flex; gap:10px;">
+                                    <div style="flex:1;">
+                                        <label>Qty (kg)</label>
+                                        <input type="number" id="wasteQty" placeholder="e.g. 20">
+                                    </div>
+                                    <div style="flex:1;">
+                                        <label>Expiry Time</label>
+                                        <input type="time" id="wasteTime">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label style="display:flex; align-items:center; justify-content:space-between;">
+                                    <span><i class="fa-solid fa-users"
+                                            style="margin-right:6px; color:var(--primary);"></i>Select NGOs to
+                                        Notify</span>
+                                    <button type="button" onclick="toggleAllNGOs()" id="selectAllBtn"
+                                        style="background:none; border:none; color:var(--primary); font-size:12px; font-weight:600; cursor:pointer;">Select
+                                        All</button>
+                                </label>
+                                <div id="ngoChecklistContainer"
+                                    style="border:1px solid var(--border); border-radius:8px; padding:10px; max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
+                                    <div
+                                        style="text-align:center; color:var(--text-muted); font-size:13px; padding:12px;">
+                                        Loading NGOs...</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-danger" onclick="broadcastSurplus()">
+                                <i class="fa-solid fa-paper-plane"></i> Send Alert
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">System Activity Log</span>
+                    </div>
+                    <div class="timeline" id="sysLog">
+                        <div class="log-item info">
+                            <span class="log-content">System Dashboard Initialized</span>
+                            <span class="log-time">Just now</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="sustainability" class="section-view">
+                <div class="kpi-grid">
+                    <div class="card glass-panel"
+                        style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; border: none;">
+                        <div class="card-header">
+                            <span class="card-title" style="color: rgba(255,255,255,0.8);">ESG Impact Score</span>
+                            <i class="fa-solid fa-medal" style="font-size: 24px;"></i>
+                        </div>
+                        <div class="card-value" id="esgScore" style="color: white; font-size: 36px;">--</div>
+                        <div class="card-meta" style="color: rgba(255,255,255,0.9);">
+                            Top 12% among peer institutions
+                        </div>
+                    </div>
+
+                    <div class="card glass-panel">
+                        <div class="card-header">
+                            <span class="card-title">Food Waste Avoided</span>
+                            <div
+                                style="padding:6px; background:#d1fae5; color:#059669; border-radius:8px; display:flex; align-items:center;">
+                                <i class="fa-solid fa-recycle"></i>
+                            </div>
+                        </div>
+                        <div class="card-value" id="kgAvoided">-- <span
+                                style="font-size:14px; color:var(--text-muted)">kg</span></div>
+                        <div class="card-meta trend-up">
+                            <i class="fa-solid fa-arrow-up"></i> 15% vs last month
+                        </div>
+                    </div>
+
+                    <div class="card glass-panel">
+                        <div class="card-header">
+                            <span class="card-title">CO₂ Eq. Saved</span>
+                            <div
+                                style="padding:6px; background:#e0e7ff; color:#4f46e5; border-radius:8px; display:flex; align-items:center;">
+                                <i class="fa-solid fa-cloud"></i>
+                            </div>
+                        </div>
+                        <div class="card-value" id="co2Saved">-- <span
+                                style="font-size:14px; color:var(--text-muted)">kg</span></div>
+                        <div class="card-meta trend-up">
+                            <i class="fa-solid fa-tree"></i> Equivalent to planting 12 trees
+                        </div>
+                    </div>
+
+                    <div class="card glass-panel">
+                        <div class="card-header">
+                            <span class="card-title">Equivalent Meals</span>
+                            <div
+                                style="padding:6px; background:#fef3c7; color:#d97706; border-radius:8px; display:flex; align-items:center;">
+                                <i class="fa-solid fa-bowl-food"></i>
+                            </div>
+                        </div>
+                        <div class="card-value" id="mealsDonated">--</div>
+                        <div class="card-meta trend-up">
+                            <i class="fa-solid fa-hand-holding-heart"></i> Meals provided to NGOs
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-grid" style="grid-template-columns: 1fr;">
+                    <div class="card glass-panel">
+                        <div class="card-header">
+                            <div>
+                                <h3 style="font-size:16px; font-weight:700;"><i class="fa-solid fa-chart-line"
+                                        style="color:var(--success); margin-right:6px;"></i> Sustainability Trend</h3>
+                                <p style="font-size:12px; color:var(--text-muted);">Monthly waste avoided (kg)</p>
+                            </div>
+                        </div>
+                        <div style="height: 350px; position: relative;">
+                            <canvas id="sustainabilityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="menu" class="section-view">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 style="font-size:20px; font-weight:700;" id="menuDayTitle">Menu Planning</h2>
+                        </div>
+                        <input type="date" id="menuDateSelect" onchange="updateMenuDisplay()" style="width:auto;">
+                    </div>
+                    <div id="menuContainer" style="padding-top:20px;">
+                    </div>
+                </div>
+            </div>
+
+            <div id="attendance" class="section-view">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 style="font-size:20px; font-weight:700;">Attendance Ledger</h2>
+                            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Includes menu context &
+                                drop analysis</p>
+                        </div>
+                        <button class="btn btn-primary" style="width:auto; padding:8px 16px;"
+                            onclick="loadAttendanceLogs()"><i class="fa-solid fa-sync"></i> Refresh</button>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Meal</th>
+                                    <th>Menu Served</th>
+                                    <th style="text-align:center;">Expected</th>
+                                    <th style="text-align:center;">Actual</th>
+                                    <th style="text-align:center;">Drop %</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceTableBody">
+                                <tr>
+                                    <td colspan="7"
+                                        style="text-align: center; padding: 40px; color: var(--text-muted);">Connecting
+                                        to database...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="donations" class="section-view">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 style="font-size:20px; font-weight:700;"><i class="fa-solid fa-hand-holding-heart"
+                                    style="color:var(--danger); margin-right:8px;"></i>Donation History</h2>
+                            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Track all surplus food
+                                donated to NGO partners</p>
+                        </div>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <div class="badge badge-success" id="donationCountCollected"><i class="fa-solid fa-circle"
+                                    style="font-size:8px; margin-right:4px;"></i>—</div>
+                            <div class="badge badge-warning" id="donationCountAccepted"><i class="fa-solid fa-circle"
+                                    style="font-size:8px; margin-right:4px;"></i>—</div>
+                            <button class="btn btn-primary" style="width:auto; padding:8px 16px;"
+                                onclick="loadDonationHistory()"><i class="fa-solid fa-sync"></i> Refresh</button>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Food Description</th>
+                                    <th style="text-align:center;">Qty (kg)</th>
+                                    <th>NGO Partners</th>
+                                    <th>Expiry</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="donationTableBody">
+                                <tr>
+                                    <td colspan="6"
+                                        style="text-align: center; padding: 40px; color: var(--text-muted);">Loading
+                                        donation history...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settings" class="section-view">
+                <div class="card" style="max-width:600px;">
+                    <h2 style="font-size:20px; font-weight:700; margin-bottom:24px;"><i class="fa-solid fa-file-export"
+                            style="color:var(--primary); margin-right:8px;"></i>Data Export & Reports</h2>
+                    <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Download your operational
+                        data or generate weekly summaries.</p>
+
+                    <div style="display:flex; flex-direction:column; gap:16px;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; padding:16px; background:#f8fafc; border-radius:8px; border:1px solid var(--border);">
+                            <div>
+                                <div style="font-weight:600; font-size:14px;">Attendance Data</div>
+                                <div style="font-size:12px; color:var(--text-muted);">Export all attendance logs as CSV
+                                </div>
+                            </div>
+                            <button class="btn" style="background:white; border:1px solid var(--border);"
+                                onclick="exportAttendanceCSV()"><i class="fa-solid fa-download"
+                                    style="margin-right:6px;"></i>Download CSV</button>
+                        </div>
+
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; padding:16px; background:#f8fafc; border-radius:8px; border:1px solid var(--border);">
+                            <div>
+                                <div style="font-weight:600; font-size:14px;">Waste Report</div>
+                                <div style="font-size:12px; color:var(--text-muted);">Export generated waste & donations
+                                    history</div>
+                            </div>
+                            <button class="btn" style="background:white; border:1px solid var(--border);"
+                                onclick="exportWasteCSV()"><i class="fa-solid fa-file-pdf"
+                                    style="margin-right:6px;"></i>Download Report</button>
+                        </div>
+
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; padding:16px; background:#f8fafc; border-radius:8px; border:1px solid var(--border);">
+                            <div>
+                                <div style="font-weight:600; font-size:14px;">Weekly Report Summary</div>
+                                <div style="font-size:12px; color:var(--text-muted);">Aggregate past 7 days of
+                                    performance</div>
+                            </div>
+                            <button class="btn"
+                                style="background:var(--primary-light); color:var(--primary); border:none;"
+                                onclick="exportWeeklyCSV()"><i class="fa-solid fa-bolt"
+                                    style="margin-right:6px;"></i>Generate</button>
+                        </div>
+                    </div>
+
+                    <h3
+                        style="font-size:16px; font-weight:700; margin-top:32px; margin-bottom:16px; color:var(--danger);">
+                        Danger Zone</h3>
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; padding:16px; background:var(--danger-bg); border-radius:8px; border:1px solid #fecdd3;">
+                        <div>
+                            <div style="font-weight:600; font-size:14px; color:#be123c;">Clear Attendance Data</div>
+                            <div style="font-size:12px; color:#9f1239;">Permanently delete all attendance records. This
+                                cannot be undone.</div>
+                        </div>
+                        <button class="btn btn-danger" onclick="clearAttendanceData()"><i class="fa-solid fa-trash"
+                                style="margin-right:6px;"></i>Clear Data</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat" class="section-view">
+                <div style="display:flex; gap:20px; height:560px;">
+
+                    <!-- Left: NGO Contact List -->
+                    <div
+                        style="width:260px; flex-shrink:0; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; background:#fff;">
+                        <div
+                            style="padding:16px 20px; border-bottom:1px solid var(--border); background:var(--primary); color:white;">
+                            <h3 style="font-size:14px; font-weight:700; margin-bottom:2px;"><i
+                                    class="fa-solid fa-building-ngo"></i> NGO Partners</h3>
+                            <p style="font-size:11px; opacity:0.85;">Click to open a conversation</p>
+                        </div>
+                        <div id="ngoContactList" style="flex:1; overflow-y:auto; padding:8px;">
+                            <div style="text-align:center; padding:24px; color:var(--text-muted); font-size:13px;">
+                                Connecting...</div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Chat Window -->
+                    <div
+                        style="flex:1; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; background:#fff;">
+                        <!-- Chat Header -->
+                        <div id="chatHeader"
+                            style="padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; background:#fafafa;">
+                            <div
+                                style="width:36px; height:36px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:16px;">
+                                <i class="fa-solid fa-building-ngo"></i>
+                            </div>
+                            <div>
+                                <h3 id="chatPartnerName"
+                                    style="font-size:14px; font-weight:700; color:var(--text-main);">Select an NGO</h3>
+                                <p style="font-size:11px; color:var(--text-muted);">Private conversation</p>
+                            </div>
+                        </div>
+
+                        <!-- Chat Messages -->
+                        <div class="chat-messages" id="chatMessages">
+                            <div id="chatEmptyState"
+                                style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text-muted);">
+                                <i class="fa-regular fa-comments"
+                                    style="font-size:40px; margin-bottom:12px; opacity:0.3;"></i>
+                                <p style="font-weight:500;">Select an NGO from the list to start a private chat</p>
+                            </div>
+                        </div>
+
+                        <!-- Chat Input -->
+                        <div class="chat-input-area" id="chatInputArea" style="display:none;">
+                            <div class="chat-input-container">
+                                <input type="text" id="chatInput" placeholder="Type a message..."
+                                    onkeypress="handleChatKeyPress(event)">
+                            </div>
+                            <button class="btn btn-primary" onclick="sendChatMessage()">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Custom floating tooltip for menu-aware chart -->
+    <div id="menuTooltip">
+        <div class="tooltip-card">
+            <div class="tooltip-date" id="ttDate"></div>
+            <div class="tooltip-meal-badge" id="ttMealBadge"></div>
+            <div class="tooltip-menu-tags" id="ttMenuTags"></div>
+            <div class="tooltip-stats">
+                <div class="tooltip-stat">
+                    <div class="tooltip-stat-label">Predicted</div>
+                    <div class="tooltip-stat-value predicted" id="ttPredicted">–</div>
+                </div>
+                <div class="tooltip-stat">
+                    <div class="tooltip-stat-label">Actual</div>
+                    <div class="tooltip-stat-value actual" id="ttActual">–</div>
+                </div>
+            </div>
+            <div class="tooltip-hint"><i class="fa-solid fa-hand-pointer" style="margin-right:4px;"></i>Click point for
+                full details</div>
+        </div>
+    </div>
+
+    <!-- AI Donation Recommendation Modal -->
+    <div id="aiDonationModalOverlay"
+        style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.7); backdrop-filter:blur(6px); z-index:9999; align-items:center; justify-content:center; opacity:0; transition:opacity 0.3s ease;">
+        <div id="aiDonationModal"
+            style="background:#ffffff; width:100%; max-width:480px; border-radius:20px; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0, 0, 0, 0.5); transform:scale(0.95) translateY(20px); transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display:flex; flex-direction:column; border: 1px solid rgba(79, 70, 229, 0.2);">
+
+            <div
+                style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); padding: 24px; color: white; position: relative; overflow: hidden;">
+                <div
+                    style="position:absolute; top:-10px; right:-10px; font-size:120px; opacity:0.1; transform:rotate(-15deg); pointer-events:none;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; position:relative; z-index:2;">
+                    <div
+                        style="background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-robot"></i> AI TRIGGER EVENT
+                    </div>
+                </div>
+                <h2
+                    style="font-size: 24px; font-weight: 800; margin:0; line-height: 1.2; position:relative; z-index:2;">
+                    Smart Donation Recommendation</h2>
+            </div>
+
+            <div style="padding: 24px;">
+                <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;"
+                    id="aiDonationExplanation">
+                    System detected actual attendance dropped significantly below the AI predicted tally. To minimize
+                    waste footprint, immediate donation broadcast is recommended.
+                </p>
+
+                <div
+                    style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                    <div style="display:flex; align-items:flex-start; margin-bottom: 16px;">
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 10px; background: #fee2e2; color: var(--danger); display:flex; align-items:center; justify-content:center; font-size:18px; margin-right: 16px; flex-shrink:0;">
+                            <i class="fa-solid fa-box-open"></i>
+                        </div>
+                        <div>
+                            <div
+                                style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                                Surplus Detected</div>
+                            <div style="font-size: 16px; font-weight: 700; color: var(--text-main); margin-top:2px;">
+                                <span id="modalMealText">Dinner</span> &rarr; <span style="color:var(--danger);"
+                                    id="modalKgText">24</span>kg food remaining
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; align-items:flex-start;">
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 10px; background: #fef3c7; color: #b45309; display:flex; align-items:center; justify-content:center; font-size:18px; margin-right: 16px; flex-shrink:0;">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                        </div>
+                        <div>
+                            <div
+                                style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                                Expiry Window</div>
+                            <div style="font-size: 16px; font-weight: 700; color: var(--text-main); margin-top:2px;"
+                                id="modalExpiryText">
+                                1 hour 45 minutes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 24px; padding-left: 12px; border-left: 3px solid var(--primary);">
+                    <div
+                        style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom:4px;">
+                        Recommended Action</div>
+                    <div style="font-size: 15px; font-weight: 700; color: var(--text-main);">
+                        Broadcast Alert to <span style="color:var(--primary);">Feeding India</span>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap: 12px;">
+                    <button class="btn" style="flex:1; background: #f1f5f9; color: var(--text-main); font-weight:600;"
+                        onclick="closeAiDonationModal()">
+                        Deny (Manual Broadcast)
+                    </button>
+                    <button id="modalSmartBroadcastBtn" class="btn btn-primary"
+                        style="flex:2; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4); font-weight:700;">
+                        <i class="fa-solid fa-paper-plane" style="margin-right:8px;"></i> Broadcast Alert
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meal detail side panel -->
+    <div id="panelOverlay" onclick="closeDetailPanel()"></div>
+    <div id="menuDetailPanel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-meal-icon" id="panelMealIcon"></div>
+                <div style="font-size:18px; font-weight:800; color:var(--text-main);" id="panelTitle">Details</div>
+                <div style="font-size:12px; color:var(--text-muted); margin-top:2px;" id="panelSubtitle"></div>
+            </div>
+            <button class="panel-close-btn" onclick="closeDetailPanel()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="panel-body">
+            <div class="panel-stat-row">
+                <div class="panel-stat-box">
+                    <div class="panel-stat-label">Predicted</div>
+                    <div class="panel-stat-num predicted" id="panelPredicted">–</div>
+                </div>
+                <div class="panel-stat-box">
+                    <div class="panel-stat-label">Actual</div>
+                    <div class="panel-stat-num actual" id="panelActual">–</div>
+                </div>
+            </div>
+            <div class="panel-attendance-bar">
+                <div
+                    style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); font-weight:600;">
+                    <span>Attendance Rate</span>
+                    <span id="panelRate">–%</span>
+                </div>
+                <div class="attendance-bar-track">
+                    <div class="attendance-bar-fill" id="panelBarFill" style="width:0%"></div>
+                </div>
+            </div>
+            <div class="panel-menu-section-title"><i class="fa-solid fa-plate-wheat" style="margin-right:6px;"></i>Menu
+                Served</div>
+            <div class="panel-menu-tags" id="panelMenuTags"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // UI UTILITIES
+        // ==========================================
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('liveClock').innerText = now.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function switchTab(tabId, element) {
+            // Update Tab Content
+            document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            // Update Nav State
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+
+            // Update Breadcrumb Title (Visual Add-on)
+            document.getElementById('pageTitle').innerText = tabId.charAt(0).toUpperCase() + tabId.slice(1);
+
+            if (tabId === 'attendance') {
+                loadAttendanceLogs();
+            }
+            if (tabId === 'donations') {
+                loadDonationHistory();
+            }
+            if (tabId === 'menu') {
+                updateMenuDisplay();
+            }
+            if (tabId === 'chat') {
+                loadChatHistory();
+            }
+            if (tabId === 'sustainability') {
+                loadSustainabilityMetrics();
+            }
+        }
+
+        function log(msg, type = 'info') {
+            const box = document.getElementById('sysLog');
+            const time = new Date().toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const div = document.createElement('div');
+            div.className = `log-item ${type}`;
+            div.innerHTML = `
+                <span class="log-content">${msg}</span>
+                <span class="log-time">${time}</span>
+            `;
+
+            box.prepend(div);
+        }
+
+        // ==========================================
+        // MENU PLANNING DATA
+        // ==========================================
+
+        const weeklyMenu = {
+            "Friday": {
+                "Breakfast": ["Indori Poha - (130 Kcal)", "Green Chutney-(90Kcal)", "egg bhurji (185Kcal)", "Mix Fruits - (57 Kcal)", "masala Sprouts- (45 Kcal)", "Jam- (276 Kcal), Brown- (282 Kcal) & White Bread- (302 Kcal)", "Milk- (59 Kcal)/Tea- (30 Kcal)/Coffee- (30 Kcal)"],
+                "Lunch": ["Paneer Lababdar- (185 Kcal)", "Khata Mitha Sitafal- (135Kcal)", "Red Masoor- (278 Kcal)", "Jeera Rice- (184 Kcal)", "Sambar- (133 Kcal)", "Roti- (280 Kcal)", "Carrot Beetroot-(80 Kcal)", "Curd- (78 Kcal)"],
+                "Snack": ["Aloo papdi chaat", "Sweet-(120 Kcal) & Green Chutney(90Kcal)", "Tea- (30 Kcal)", "Tang- (54 Kcal)"],
+                "Dinner": ["Aloo Capsicum -(80 Kcal)", "baingan bharta- (188 Kcal)", "Hariyali Dal-(149 Kcal)", "Steamed Rice- (130 Kcal)", "Roti- (280 Kcal)", "fruit custard", "Shirka Onion- (68 Kcal)", "Veg Clear Soup- (39 Kcal)"]
+            },
+            "Monday": {
+                "Breakfast": ["Aloo Paratha - (180 Kcal)", "Curd - (98 Kcal)", "Mix Pickle - (25 Kcal)", "Sweet Corn - (120 Kcal)", "Bread & Butter - (210 Kcal)", "Tea/Coffee - (30 Kcal)"],
+                "Lunch": ["Rajma Masala - (240 Kcal)", "Jeera Rice - (180 Kcal)", "Aloo Gobhi - (140 Kcal)", "Roti - (280 Kcal)", "Green Salad - (45 Kcal)", "Boondi Raita - (110 Kcal)"],
+                "Snack": ["Samosa (1 pc) - (260 Kcal)", "Imli Chutney - (45 Kcal)", "Tea - (30 Kcal)", "Biscuits - (80 Kcal)"],
+                "Dinner": ["Mix Veg - (160 Kcal)", "Dal Tadka - (185 Kcal)", "Rice - (130 Kcal)", "Roti - (280 Kcal)", "Gulab Jamun - (140 Kcal)"]
+            },
+            "Tuesday": {
+                "Breakfast": ["Idli (2 pcs) - (120 Kcal)", "Sambar - (140 Kcal)", "Coconut Chutney - (80 Kcal)", "Vada - (150 Kcal)", "Fruits - (60 Kcal)", "Tea/Coffee - (30 Kcal)"],
+                "Lunch": ["Kadi Pakoda - (210 Kcal)", "Steamed Rice - (130 Kcal)", "Bhindi Masala - (110 Kcal)", "Roti - (280 Kcal)", "Papad - (45 Kcal)"],
+                "Snack": ["Red Sauce Pasta - (220 Kcal)", "Cold Coffee - (140 Kcal)"],
+                "Dinner": ["Egg Curry - (210 Kcal)", "Aloo Matar - (140 Kcal)", "Rice - (130 Kcal)", "Roti - (280 Kcal)", "Sewaiyan - (180 Kcal)"]
+            },
+            "Wednesday": {
+                "Breakfast": ["Puri Bhaji - (320 Kcal)", "Sooji Halwa - (210 Kcal)", "Chana Masala - (160 Kcal)", "Pickle - (20 Kcal)", "Tea/Coffee - (30 Kcal)"],
+                "Lunch": ["Chole Bhature - (450 Kcal)", "Sweet Lassi - (180 Kcal)", "Onion Salad - (30 Kcal)", "Fried Chilli - (10 Kcal)"],
+                "Snack": ["Bread Pakoda - (240 Kcal)", "Tomato Ketchup - (20 Kcal)", "Tea - (30 Kcal)"],
+                "Dinner": ["Veg Biryani - (290 Kcal)", "Mirchi Ka Salan - (140 Kcal)", "Mix Raita - (80 Kcal)", "Moong Dal Halwa - (250 Kcal)"]
+            },
+            "Thursday": {
+                "Breakfast": ["Veg Upma - (160 Kcal)", "Coconut Chutney - (80 Kcal)", "Boiled Egg - (75 Kcal)", "Toast - (90 Kcal)", "Juice - (110 Kcal)"],
+                "Lunch": ["Dal Makhani - (320 Kcal)", "Butter Naan - (210 Kcal)", "Paneer Tikka - (180 Kcal)", "Jeera Rice - (180 Kcal)", "Salad - (40 Kcal)"],
+                "Snack": ["Veg Maggi - (210 Kcal)", "Frooti - (120 Kcal)"],
+                "Dinner": ["Malai Kofta - (280 Kcal)", "Yellow Dal - (140 Kcal)", "Rice - (130 Kcal)", "Paratha - (180 Kcal)", "Ice Cream - (150 Kcal)"]
+            },
+            "Saturday": {
+                "Breakfast": ["Masala Dosa - (240 Kcal)", "Sambar - (130 Kcal)", "Red Chutney - (70 Kcal)", "Upma - (120 Kcal)", "Tea/Coffee - (30 Kcal)"],
+                "Lunch": ["Dal Khichdi - (180 Kcal)", "Aloo Chokha - (110 Kcal)", "Curd - (78 Kcal)", "Papad - (45 Kcal)", "Pickle - (20 Kcal)"],
+                "Snack": ["Bhel Puri - (160 Kcal)", "Sev - (80 Kcal)", "Nimbu Pani - (60 Kcal)"],
+                "Dinner": ["Mutter Paneer - (220 Kcal)", "Dal Fry - (150 Kcal)", "Jeera Rice - (184 Kcal)", "Roti - (280 Kcal)", "Rasgulla - (120 Kcal)"]
+            },
+            "Sunday": {
+                "Breakfast": ["Chole Kulche - (380 Kcal)", "Boondi Raita - (110 Kcal)", "Salad - (40 Kcal)", "Sweet Lassi - (180 Kcal)"],
+                "Lunch": ["Veg Pulao - (210 Kcal)", "Paneer Butter Masala - (280 Kcal)", "Pineapple Raita - (120 Kcal)", "Fryums - (60 Kcal)"],
+                "Snack": ["Veg Grilled Sandwich - (220 Kcal)", "Potato Chips - (150 Kcal)", "Cold Drink - (140 Kcal)"],
+                "Dinner": ["SPECIAL THALI: Paneer, Dal Makhani, Naan, Rice, Sweet, Salad - (850 Kcal)"]
+            }
+        };
+
+        function updateMenuDisplay() {
+            const dateInput = document.getElementById('menuDateSelect');
+            let selectedDate = dateInput.value ? new Date(dateInput.value) : new Date();
+            if (!dateInput.value) dateInput.valueAsDate = new Date();
+
+            const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(selectedDate);
+            document.getElementById('menuDayTitle').innerText = `${dayName}'s Menu`;
+
+            const menu = weeklyMenu[dayName];
+            const container = document.getElementById('menuContainer');
+            container.innerHTML = '';
+
+            if (!menu) {
+                container.innerHTML = `
+                    <div style="padding: 60px; text-align: center; color: var(--text-muted);">
+                        No menu data available for this day.
+                    </div>
+                `;
+                return;
+            }
+
+            const meals = [
+                { type: 'Breakfast', time: '07:30 AM - 09:30 AM', icon: 'fa-mug-hot' },
+                { type: 'Lunch', time: '12:00 PM - 03:00 PM', icon: 'fa-utensils' },
+                { type: 'Snack', time: '05:00 PM - 06:00 PM', icon: 'fa-cookie-bite' },
+                { type: 'Dinner', time: '08:00 PM - 10:00 PM', icon: 'fa-bowl-rice' }
+            ];
+
+            meals.forEach(meal => {
+                if (menu[meal.type]) {
+                    const itemsHtml = menu[meal.type].map(item => `
+                        <div style="display:flex; align-items:baseline; margin-bottom:4px; font-size:13px; color:var(--text-main);">
+                            <i class="fa-solid fa-angle-right" style="font-size:10px; color:var(--primary); margin-right:8px;"></i>
+                            ${item}
+                        </div>
+                    `).join('');
+
+                    container.innerHTML += `
+                        <div style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px;">
+                            <div style="display:flex; align-items:center; margin-bottom:12px;">
+                                <div style="width:32px; height:32px; background:white; border:1px solid var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--primary); margin-right:12px;">
+                                    <i class="fa-solid ${meal.icon}"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight:700; font-size:14px; color:var(--text-main);">${meal.type}</div>
+                                    <div style="font-size:11px; color:var(--secondary); font-weight:600; text-transform:uppercase;">${meal.time}</div>
+                                </div>
+                            </div>
+                            <div style="padding-left:44px;">${itemsHtml}</div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        // ==========================================
+        // BACKEND CONNECTION
+        // ==========================================
+
+        let socket = null;
+
+        function connectWebSocket() {
+            const wsUrl = "ws://127.0.0.1:8000/ws";
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = function (e) {
+                console.log("[WS] Connected to Server");
+            };
+
+            socket.onmessage = function (event) {
+                const msg = JSON.parse(event.data);
+                if (msg.type === "CHAT_MESSAGE") {
+                    appendChatMessage(msg.data.sender_type, msg.data.message, msg.data.timestamp);
+                    if (msg.data.sender_type !== 'Admin') {
+                        showToast(`New message from ${msg.data.sender_type}`, 'info');
+                    }
+                }
+            };
+
+            socket.onclose = function (event) {
+                console.log("[WS] Disconnected, retrying in 5s...");
+                setTimeout(connectWebSocket, 5000);
+            };
+        }
+
+        async function checkServer() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/');
+                if (res.ok) {
+                    const statusBadge = document.getElementById('connStatus');
+                    const statusText = document.getElementById('connText');
+                    const pulseDot = document.querySelector('#connStatus .pulse-dot');
+
+                    statusBadge.style.background = 'var(--success-bg)';
+                    statusBadge.style.color = 'var(--success)';
+                    statusBadge.style.borderColor = 'var(--success)';
+                    pulseDot.style.background = 'var(--success)';
+                    statusText.innerText = "System Online";
+
+                    loadBroadcastHistory();
+                    loadAccuracyChart();
+                    loadSustainabilityMetrics();
+                    loadDashboardSummary();
+                    connectWebSocket();
+                    await fetchAvailableNGOs();
+                }
+            } catch (err) {
+                console.log('Server not available');
+            }
+        }
+
+        // ==========================================
+        // DASHBOARD SUMMARY (Real KPI Data)
+        // ==========================================
+
+        async function loadDashboardSummary() {
+            // Set the current date label
+            const now = new Date();
+            const dateLabel = now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const el = document.getElementById('dashDate');
+            if (el) el.textContent = dateLabel;
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/dashboard-summary?mess_id=' + CURRENT_MESS_ID);
+                const d = await res.json();
+
+                // KPI: Today's Actual Attendance
+                const actualEl = document.getElementById('todayActual');
+                if (actualEl) {
+                    actualEl.textContent = d.today_actual.toLocaleString();
+                }
+                const actualMeta = document.getElementById('todayActualMeta');
+                if (actualMeta) {
+                    if (d.today_predicted > 0) {
+                        const pct = Math.round((d.today_actual / d.today_predicted) * 100);
+                        const color = pct >= 85 ? 'var(--success)' : pct >= 70 ? '#d97706' : 'var(--danger)';
+                        actualMeta.innerHTML = `<i class="fa-solid fa-arrow-trend-up" style="margin-right:4px; color:${color};"></i>${pct}% of AI prediction (${d.today_predicted} expected)`;
+                    } else {
+                        actualMeta.innerHTML = `<i class="fa-solid fa-clock" style="margin-right:4px;"></i>No predictions run today`;
+                    }
+                }
+
+                // KPI: Surplus
+                const surplusEl = document.getElementById('surplusKg');
+                if (surplusEl) {
+                    surplusEl.innerHTML = `${d.surplus_kg} <span style="font-size:16px; color:var(--text-muted); font-weight:600;">kg</span>`;
+                }
+                const surplusMeta = document.getElementById('surplusMeta');
+                if (surplusMeta) {
+                    const status = d.surplus_kg > 20 ? 'High — Broadcast recommended!' : d.surplus_kg > 5 ? 'Moderate surplus' : 'Minimal surplus today';
+                    const color = d.surplus_kg > 20 ? 'var(--danger)' : d.surplus_kg > 5 ? '#d97706' : 'var(--success)';
+                    surplusMeta.innerHTML = `<i class="fa-solid fa-scale-balanced" style="margin-right:4px;"></i><span style="color:${color};">${status}</span>`;
+                }
+
+                // KPI: NGO Pickups
+                const pickupsEl = document.getElementById('ngoPickups');
+                if (pickupsEl) {
+                    const total = d.ngo_accepted + d.ngo_pending;
+                    pickupsEl.textContent = d.ngo_accepted;
+                }
+                const pickupsMeta = document.getElementById('ngoPickupsMeta');
+                if (pickupsMeta) {
+                    pickupsMeta.innerHTML = d.ngo_pending > 0
+                        ? `<i class="fa-solid fa-hourglass-half" style="margin-right:4px; color:#d97706;"></i><span style="color:#d97706;">${d.ngo_pending} pending confirmation</span>`
+                        : `<i class="fa-solid fa-check-circle" style="margin-right:4px; color:var(--success);"></i>No pending pickups`;
+                }
+
+                // Insight Panels
+                const insightAttEl = document.getElementById('insightAttTrend');
+                if (insightAttEl && d.today_predicted > 0) {
+                    const gap = d.today_predicted - d.today_actual;
+                    if (gap > 0) {
+                        insightAttEl.innerHTML = `<span style="color:var(--danger); font-weight:700;">↓ ${gap} fewer</span> students attended vs prediction today.`;
+                    } else if (gap < 0) {
+                        insightAttEl.innerHTML = `<span style="color:var(--success); font-weight:700;">↑ ${Math.abs(gap)} more</span> students than predicted — great turnout!`;
+                    } else {
+                        insightAttEl.innerHTML = `<span style="color:var(--success); font-weight:700;">✓ Perfect match</span> — prediction aligned with actual count.`;
+                    }
+                } else if (insightAttEl) {
+                    insightAttEl.innerHTML = `<span style="color:var(--text-muted);">Run a prediction to see today's trend analysis.</span>`;
+                }
+
+                const insightDonEl = document.getElementById('insightDonation');
+                if (insightDonEl) {
+                    insightDonEl.innerHTML = `<strong>${d.total_donations_kg} kg</strong> donated to NGOs in total.<br><span style="color:var(--text-muted);">${d.recent_broadcasts.length} recent broadcasts.</span>`;
+                }
+
+                const insightActEl = document.getElementById('insightActivity');
+                if (insightActEl) {
+                    if (d.recent_broadcasts.length > 0) {
+                        const latest = d.recent_broadcasts[0];
+                        const statusColor = latest.status === 'ACCEPTED' ? 'var(--success)' : '#d97706';
+                        insightActEl.innerHTML = `Last broadcast: <strong>${latest.meal_description}</strong><br><span style="color:${statusColor};">${latest.status}</span> · ${latest.quantity_kg}kg to ${latest.ngo_count} NGO(s)`;
+                    } else {
+                        insightActEl.innerHTML = `<span style="color:var(--text-muted);">No donation broadcasts yet today.</span>`;
+                    }
+                }
+
+                log(`Dashboard summary loaded — Today: ${d.today_actual} actual / ${d.today_predicted} predicted`, 'info');
+
+            } catch (e) {
+                console.error('Dashboard summary failed', e);
+                // Show fallback values
+                ['todayActual', 'surplusKg', 'ngoPickups'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = '<span style="color:var(--text-muted); font-size:18px;">--</span>';
+                });
+            }
+        }
+
+        // ==========================================
+        // AI PREDICTION + AUTO SAVE
+        // ==========================================
+
+        async function getPrediction() {
+            const date = document.getElementById('predDate').value;
+            const meal = document.getElementById('predMeal').value;
+            const students = document.getElementById('predStudents').value;
+            const actual = document.getElementById('actualAttendance').value || 0;
+
+            if (!date) {
+                showToast("Please select a date!", "error");
+                return;
+            }
+
+            log(`Processing Prediction for ${date} (${meal})...`, 'info');
+            document.getElementById('aiDisplay').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/predict-item-analysis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mess_id: CURRENT_MESS_ID,
+                        date: date,
+                        meal_type: meal,
+                        expected_students: parseInt(students)
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('aiDisplay').innerText = data.predicted_attendance;
+                log(`AI Prediction: ${data.predicted_attendance} plates`, "success");
+
+                // Render Item Analysis
+                renderItemAnalysis(data.items_analysis, data.overall_waste_risk, data.waste_percentage_estimate);
+
+                await saveToLog(date, meal, students, actual);
+                loadAccuracyChart();
+
+                // Trigger Smart Broadcast detect
+                updateSmartBroadcast(meal, data.predicted_attendance, actual);
+
+                // Trigger Attendance Drop Warning (if actual is at least 10% less than predicted)
+                const predictedTally = parseInt(data.predicted_attendance);
+                const actualTally = parseInt(actual);
+                if (predictedTally > 0 && actualTally > 0 && actualTally < predictedTally) {
+                    const dropPct = Math.round(((predictedTally - actualTally) / predictedTally) * 100);
+                    if (dropPct >= 10) {
+                        const mealText = meal.charAt(0).toUpperCase() + meal.slice(1);
+                        const warningHtml = `
+                            <div style="font-weight:800; color:var(--danger); font-size:14px; margin-bottom:4px; letter-spacing:0.5px;">ATTENDANCE ALERT</div>
+                            <div style="font-size:13px; font-weight:600; color:var(--text-main); margin-bottom:6px;">${mealText} attendance dropped by ${dropPct}%</div>
+                            <div style="font-size:12px; color:var(--text-muted); background:var(--danger-bg); padding:6px 10px; border-radius:6px; display:inline-block; border:1px solid #fecdd3;">
+                                <i class="fa-solid fa-arrow-trend-down" style="color:var(--danger); margin-right:4px;"></i> Possible reason: Low popularity menu
+                            </div>
+                        `;
+                        showToast(warningHtml, 'error', 5000, true);
+                    }
+                }
+
+            } catch (e) {
+                document.getElementById('aiDisplay').innerText = "Err";
+                log("Prediction/Save Error. Check Server.", "error");
+            }
+        }
+
+        // ==========================================
+        // SMART BROADCAST RECOMMENDATION
+        // ==========================================
+
+        function updateSmartBroadcast(meal, expectedStr, actualStr) {
+            const expected = parseInt(expectedStr) || 0;
+            const actual = parseInt(actualStr) || 0;
+            const surplusPlates = expected - actual;
+
+            // Old card element (we can hide or keep it hidden)
+            const card = document.getElementById('smartBroadcastCard');
+            if (card) card.style.display = 'none';
+
+            if (surplusPlates > 10) {
+                // Heuristic: 0.4kg per plate
+                const surplusKg = Math.round(surplusPlates * 0.4);
+                const mealText = meal.charAt(0).toUpperCase() + meal.slice(1);
+
+                const toastHtml = `
+                    <div style="padding-top: 2px;">
+                        <div style="font-weight:800; color:var(--primary); font-size:14px; margin-bottom:4px; letter-spacing:0.5px;">
+                            <i class="fa-solid fa-robot" style="margin-right:4px;"></i> SMART DONATION
+                        </div>
+                        <div style="font-size:13px; font-weight:600; color:var(--text-main); margin-bottom:4px;">
+                            Surplus: <span style="color:var(--danger);">${surplusKg}kg</span> ${mealText} food remaining.
+                        </div>
+                        <div style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+                            Expiry window: ~2 hours. Broadcast to NGO?
+                        </div>
+                        <div style="display:flex; gap: 8px;">
+                            <button class="btn btn-primary" style="padding:6px 12px; font-size:12px; flex:2; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);" onclick="sendSmartBroadcast('${mealText}', ${surplusKg}); this.closest('.toast').classList.remove('show'); setTimeout(() => this.closest('.toast').remove(), 300);">
+                                <i class="fa-solid fa-paper-plane" style="margin-right:4px;"></i> Broadcast Alert
+                            </button>
+                            <button class="btn" style="padding:6px 12px; font-size:12px; background:#f1f5f9; color:var(--text-main); flex:1;" onclick="this.closest('.toast').classList.remove('show'); setTimeout(() => this.closest('.toast').remove(), 300);">
+                                Deny
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                showToast(toastHtml, 'info', 0, true);
+
+            }
+        }
+
+        async function sendSmartBroadcast(mealText, quantityKg) {
+            log(`AI submitting smart broadcast: ${quantityKg}kg...`, 'info');
+
+            // Generate expiry time roughly 2 hours from now
+            const now = new Date();
+            now.setHours(now.getHours() + 2);
+            let hours = now.getHours();
+            let mins = now.getMinutes();
+            if (hours < 10) hours = '0' + hours;
+            if (mins < 10) mins = '0' + mins;
+            const expiryTime = `${hours}:${mins}`;
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/broadcast-surplus', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mess_id: CURRENT_MESS_ID,
+                        meal_description: `${mealText.toUpperCase()} (AI Tracked Surplus)`,
+                        quantity_kg: parseFloat(quantityKg),
+                        expiry_time: expiryTime
+                    })
+                });
+
+                if (response.ok) {
+                    log("AI Broadcast Sent to NGOs & Saved.", "success");
+                    showToast("✅ Smart Broadcast Sent Successfully!", "success");
+                    loadBroadcastHistory();
+
+                    // Hide the card
+                    document.getElementById('smartBroadcastCard').style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Smart broadcast failed', e);
+                showToast("Smart Broadcast Failed to Connect", "error");
+            }
+        }
+
+        function renderItemAnalysis(items, risk, pct) {
+            const container = document.getElementById('itemAnalysisContainer');
+            if (!container) return;
+
+            const badge = document.getElementById('overallWasteStatus');
+            badge.innerText = `Overall: ${risk} Risk (${pct}% waste)`;
+            badge.className = `badge ${risk === 'High' ? 'badge-danger' : risk === 'Medium' ? 'badge-warning' : 'badge-success'}`;
+
+            let html = '';
+            items.forEach(item => {
+                const color = item.waste_risk === 'High' ? 'var(--danger)' : item.waste_risk === 'Medium' ? '#d97706' : 'var(--success)';
+                const bg = item.waste_risk === 'High' ? 'var(--danger-bg)' : item.waste_risk === 'Medium' ? '#fef3c7' : 'var(--success-bg)';
+                html += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); border-radius:8px; margin-bottom:8px; background:#f8fafc;">
+                        <div>
+                            <div style="font-weight:600; font-size:14px; color:var(--text-main);">${item.item_name}</div>
+                            <div style="font-size:11px; color:var(--secondary); margin-top:4px;"><i class="fa-solid fa-fire-burner" style="margin-right:4px;"></i> Suggested Prep: <strong>${item.predicted_consumption_kg} kg</strong></div>
+                        </div>
+                        <span class="badge" style="background:${bg}; color:${color}; font-size:10px;"><i class="fa-solid fa-trash-can" style="margin-right:4px;"></i> ${item.waste_risk} Waste</span>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // ==========================================
+        // SAVE LOG FUNCTION
+        // ==========================================
+
+        async function saveToLog(date, meal, students, actual) {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/save-log', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mess_id: CURRENT_MESS_ID,
+                        date: date,
+                        meal_type: meal,
+                        expected_students: parseInt(students),
+                        actual_attendance: parseInt(actual)
+                    })
+                });
+
+                if (response.ok) {
+                    log("Entry saved to Attendance Database.", "success");
+                }
+            } catch (e) {
+                console.error("Save failed", e);
+            }
+        }
+
+        // ==========================================
+        // LOAD ATTENDANCE LOGS
+        // ==========================================
+
+        async function loadAttendanceLogs() {
+            const tableBody = document.getElementById('attendanceTableBody');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 60px; color: var(--text-muted);">
+                        Fetching records from MySQL...
+                    </td>
+                </tr>
+            `;
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/attendance-logs?mess_id=' + CURRENT_MESS_ID);
+                const logs = await response.json();
+                tableBody.innerHTML = '';
+
+                if (logs.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 60px; color: var(--text-muted);">No records found</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                logs.forEach(entry => {
+                    // ---- Menu lookup ----
+                    const day = entry.day_of_week || '';
+                    const meal = (entry.meal_type || '');
+                    const mealKey = meal.charAt(0).toUpperCase() + meal.slice(1).toLowerCase();
+                    const items = (weeklyMenu[day] && weeklyMenu[day][mealKey]) ? weeklyMenu[day][mealKey] : [];
+                    const menuChips = items.length
+                        ? items.slice(0, 4).map(i => `<span class="menu-chip">${cleanItemName(i)}</span>`).join('')
+                        + (items.length > 4 ? `<span class="menu-chip" style="opacity:0.6;">+${items.length - 4} more</span>` : '')
+                        : '<span style="color:var(--text-muted); font-size:11px;">—</span>';
+
+                    // ---- Drop % ----
+                    const expected = entry.expected_students || 0;
+                    const actual = entry.actual_attendance || 0;
+                    let dropHtml = '<span style="color:var(--text-muted);">—</span>';
+                    if (expected > 0) {
+                        const dropPct = Math.round(((expected - actual) / expected) * 100);
+                        const cls = dropPct < 0 ? 'good' : dropPct < 10 ? 'good' : dropPct < 25 ? 'medium' : 'high';
+                        const arrow = dropPct <= 0 ? '↑' : '↓';
+                        dropHtml = `<span class="drop-pct ${cls}">${Math.abs(dropPct)}% ${arrow}</span>`;
+                    }
+
+                    // ---- Meal badge ----
+                    const MEAL_COLORS = {
+                        breakfast: 'background:#fff7ed;color:#c2410c;',
+                        lunch: 'background:#ecfdf5;color:#065f46;',
+                        snack: 'background:#fffbeb;color:#92400e;',
+                        dinner: 'background:#f5f3ff;color:#5b21b6;'
+                    };
+                    const MEAL_ICONS = {
+                        breakfast: 'fa-mug-hot', lunch: 'fa-utensils',
+                        snack: 'fa-cookie-bite', dinner: 'fa-bowl-rice'
+                    };
+                    const mealLower = meal.toLowerCase();
+                    const mealStyle = MEAL_COLORS[mealLower] || 'background:#f1f5f9;color:#64748b;';
+                    const mealIcon = MEAL_ICONS[mealLower] || 'fa-utensils';
+
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td style="font-weight:600;">${entry.date}</td>
+                            <td>
+                                <span class="badge" style="${mealStyle}">
+                                    <i class="fa-solid ${mealIcon}" style="margin-right:4px;"></i>${mealKey}
+                                </span>
+                            </td>
+                            <td class="menu-cell">${menuChips}</td>
+                            <td style="text-align:center; color:var(--secondary); font-weight:600;">${expected.toLocaleString()}</td>
+                            <td style="text-align:center; font-weight:700;">${actual.toLocaleString()}</td>
+                            <td style="text-align:center;">${dropHtml}</td>
+                            <td>
+                                <span class="badge badge-success">
+                                    <i class="fa-solid fa-check"></i> Sync
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                console.error('Failed to load logs', e);
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:var(--danger);">Could not connect to server</td></tr>`;
+            }
+        }
+
+        // ==========================================
+        // LOAD DONATION HISTORY
+        // ==========================================
+
+        async function loadDonationHistory() {
+            const tableBody = document.getElementById('donationTableBody');
+            tableBody.innerHTML = `
+                <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading donation history...</td></tr>
+            `;
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/broadcast-history?mess_id=' + CURRENT_MESS_ID);
+                const logs = await response.json();
+                tableBody.innerHTML = '';
+
+                if (logs.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">No donation records found</td></tr>
+                    `;
+                    // Update badges
+                    const collBadge = document.getElementById('donationCountCollected');
+                    const accBadge = document.getElementById('donationCountAccepted');
+                    if (collBadge) collBadge.innerHTML = '<i class="fa-solid fa-circle" style="font-size:8px; margin-right:4px;"></i>0 Collected';
+                    if (accBadge) accBadge.innerHTML = '<i class="fa-solid fa-circle" style="font-size:8px; margin-right:4px;"></i>0 Accepted';
+                    return;
+                }
+
+                // Count statuses for badges
+                let collected = 0, accepted = 0;
+
+                logs.forEach(log => {
+                    if (log.status === 'COLLECTED') collected++;
+                    else if (log.status === 'ACCEPTED') accepted++;
+
+                    const dateObj = new Date(log.created_at);
+                    const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                    const ngoList = log.ngo_names && log.ngo_names.length > 0
+                        ? log.ngo_names.map(n => `<span class="badge badge-primary" style="margin-right:4px; font-size:11px;">${n}</span>`).join('')
+                        : '<span style="color:var(--text-muted); font-size:12px;">All NGOs</span>';
+
+                    const statusBadge = log.status === 'ACCEPTED'
+                        ? `<span class="badge badge-accepted"><i class="fa-solid fa-check" style="margin-right:4px;"></i>Accepted</span>`
+                        : log.status === 'COLLECTED'
+                            ? `<span class="badge badge-collected"><i class="fa-solid fa-box" style="margin-right:4px;"></i>Collected</span>`
+                            : `<span class="badge" style="background:#eff6ff;color:#2563eb;"><i class="fa-solid fa-broadcast-tower" style="margin-right:4px;"></i>Broadcasted</span>`;
+
+                    tableBody.innerHTML += `
+                        <tr style="transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                            <td style="font-weight:600; color:var(--text-muted);">${dateStr}</td>
+                            <td style="font-weight:500;">${log.meal_description}</td>
+                            <td style="text-align:center; font-weight:800; color:var(--danger); font-size:16px;">${log.quantity_kg}<span style="font-size:11px; font-weight:500; color:var(--text-muted); margin-left:2px;">kg</span></td>
+                            <td>${ngoList}</td>
+                            <td style="color:var(--text-muted);">${log.expiry_time}</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                });
+
+                // Update stat badges in section header
+                const collBadge = document.getElementById('donationCountCollected');
+                const accBadge = document.getElementById('donationCountAccepted');
+                if (collBadge) collBadge.innerHTML = `<i class="fa-solid fa-circle" style="font-size:8px; margin-right:4px;"></i>${collected} Collected`;
+                if (accBadge) accBadge.innerHTML = `<i class="fa-solid fa-circle" style="font-size:8px; margin-right:4px;"></i>${accepted} Accepted`;
+
+            } catch (e) {
+                console.error('Failed to load donation history', e);
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--danger);">Could not connect to server</td></tr>`;
+            }
+        }
+
+        // ==========================================
+        // SUSTAINABILITY METRICS LOGIC
+        // ==========================================
+
+        let sustainChartInstance = null;
+
+        async function loadSustainabilityMetrics() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/sustainability-metrics?mess_id=' + CURRENT_MESS_ID);
+                const data = await response.json();
+
+                // Update KPIs
+                document.getElementById('kgAvoided').innerHTML = `${data.kg_avoided} <span style="font-size:14px; color:var(--text-muted)">kg</span>`;
+                document.getElementById('co2Saved').innerHTML = `${data.co2_saved} <span style="font-size:14px; color:var(--text-muted)">kg</span>`;
+                document.getElementById('mealsDonated').innerText = data.meals_donated.toLocaleString();
+                document.getElementById('esgScore').innerText = data.esg_score;
+
+                // Update Chart
+                const ctx = document.getElementById('sustainabilityChart').getContext('2d');
+
+                if (sustainChartInstance) {
+                    sustainChartInstance.destroy();
+                }
+
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(5, 150, 105, 0.5)'); // success color
+                gradient.addColorStop(1, 'rgba(5, 150, 105, 0.05)');
+
+                sustainChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.trend_labels,
+                        datasets: [{
+                            label: 'Waste Avoided (kg)',
+                            data: data.trend_data,
+                            borderColor: 'rgba(5, 150, 105, 1)',
+                            backgroundColor: gradient,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: 'rgba(5, 150, 105, 1)',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false }
+                            },
+                            x: {
+                                grid: { display: false, drawBorder: false }
+                            }
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                    }
+                });
+
+            } catch (err) {
+                console.error("Failed to load sustainability metrics", err);
+            }
+        }
+
+        // ==========================================
+        // BROADCAST TO NGO (Multi-Select)
+        // ==========================================
+
+        let availableNGOs = [];
+
+        async function renderNgoChecklist() {
+            const container = document.getElementById('ngoChecklistContainer');
+            if (!container) return;
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/ngos');
+                availableNGOs = await res.json();
+                if (availableNGOs.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:13px; padding:16px;"><i class="fa-solid fa-building-ngo" style="display:block; font-size:24px; margin-bottom:8px; opacity:0.3;"></i>No NGOs registered yet</div>';
+                    return;
+                }
+                const colors = ['#4f46e5', '#059669', '#f97316', '#7c3aed', '#e11d48', '#0284c7'];
+                container.innerHTML = availableNGOs.map((ngo, i) => {
+                    const color = colors[i % colors.length];
+                    const initials = ngo.name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+                    return `
+                    <label style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:pointer; border:1.5px solid var(--border); transition:all 0.2s; background:white; margin-bottom:2px;" class="ngo-list-label">
+                        <input type="checkbox" class="ngo-checkbox" value="${ngo.id}" style="width:16px; height:16px; accent-color:var(--primary); flex-shrink:0;">
+                        <div style="width:32px; height:32px; border-radius:50%; background:${color}20; color:${color}; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; flex-shrink:0;">${initials}</div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:700; font-size:13px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ngo.name}</div>
+                            <div style="font-size:11px; color:var(--text-muted);">${ngo.location || 'Location not set'}</div>
+                        </div>
+                        <span style="font-size:10px; font-weight:600; padding:2px 8px; border-radius:999px; background:#d1fae5; color:#065f46;"><i class="fa-solid fa-circle" style="font-size:6px; margin-right:3px;"></i>Active</span>
+                    </label>`;
+                }).join('');
+                // Hover effect via JS since we can't add :has selector in old CSS
+                container.querySelectorAll('.ngo-list-label').forEach(label => {
+                    const cb = label.querySelector('input');
+                    cb.addEventListener('change', () => {
+                        label.style.borderColor = cb.checked ? 'var(--primary)' : 'var(--border)';
+                        label.style.background = cb.checked ? 'var(--primary-light)' : 'white';
+                    });
+                });
+            } catch (e) {
+                container.innerHTML = '<div style="color:var(--danger); font-size:12px; padding:12px;">Could not load NGOs</div>';
+            }
+        }
+
+        function toggleAllNGOs() {
+            const checkboxes = document.querySelectorAll('.ngo-checkbox');
+            const btn = document.getElementById('selectAllBtn');
+            const allChecked = [...checkboxes].every(c => c.checked);
+            checkboxes.forEach(c => c.checked = !allChecked);
+            btn.textContent = allChecked ? 'Select All' : 'Deselect All';
+        }
+
+        async function broadcastSurplus() {
+            const meal = document.getElementById('wasteMeal') ? document.getElementById('wasteMeal').value : (document.getElementById('predMeal').value + ' (Surplus)');
+            const qty = document.getElementById('wasteQty').value;
+            const time = document.getElementById('wasteTime').value;
+
+            if (!qty || !time) {
+                showToast('Please enter quantity and expiry time!', 'error');
+                return;
+            }
+
+            // Collect selected NGO IDs
+            const checked = document.querySelectorAll('.ngo-checkbox:checked');
+            const ngo_ids = [...checked].map(c => parseInt(c.value));
+
+            log(`Broadcasting surplus: ${qty}kg to ${ngo_ids.length > 0 ? ngo_ids.length + ' NGO(s)' : 'all NGOs'}...`, 'info');
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/broadcast-surplus', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mess_id: CURRENT_MESS_ID,
+                        ngo_ids: ngo_ids,
+                        meal_description: meal || 'Surplus Food',
+                        quantity_kg: parseFloat(qty),
+                        expiry_time: time
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`Alert sent to ${data.recipients} NGO(s) & Saved to DB.`, 'success');
+                    showToast(`Broadcast sent to ${data.recipients} NGO(s)!`, 'success');
+                    if (document.getElementById('wasteMeal')) document.getElementById('wasteMeal').value = '';
+                    document.getElementById('wasteQty').value = '';
+                    document.getElementById('wasteTime').value = '';
+                    // Uncheck all NGOs
+                    document.querySelectorAll('.ngo-checkbox').forEach(c => c.checked = false);
+                    loadBroadcastHistory();
+                    loadDonationHistory();
+                }
+            } catch (e) {
+                console.error('Broadcast failed', e);
+                showToast('Broadcast failed. Check server.', 'error');
+            }
+        }
+
+        // ==========================================
+        // LOAD BROADCAST HISTORY
+        // ==========================================
+
+        async function loadBroadcastHistory() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/broadcast-history?mess_id=' + CURRENT_MESS_ID);
+                const history = await res.json();
+                const logBox = document.getElementById('sysLog');
+                // We append to existing dashboard logs, don't clear all (visual pref)
+                // But for strict data sync:
+                logBox.innerHTML = '';
+
+                history.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'log-item success';
+                    div.innerHTML = `
+                        <span class="log-content">
+                            <i class="fa-solid fa-bullhorn"></i>
+                            Broadcasted: <strong>${item.quantity_kg}kg</strong> ${item.meal_description}
+                        </span>
+                    `;
+                    logBox.appendChild(div);
+                });
+            } catch (e) {
+                console.error('Failed to load broadcast history', e);
+            }
+        }
+
+        // ==========================================
+        // MENU-AWARE ACCURACY CHART
+        // ==========================================
+
+        let accuracyChartInstance = null;
+        let allMenuAttendanceData = [];   // raw from API
+        let currentMealFilter = 'all';
+
+        // Meal metadata for colours, icons, class names
+        const MEAL_META = {
+            breakfast: { color: '#f97316', cls: 'breakfast', icon: 'fa-mug-hot', label: 'Breakfast' },
+            lunch: { color: '#059669', cls: 'lunch', icon: 'fa-utensils', label: 'Lunch' },
+            snack: { color: '#d97706', cls: 'snack', icon: 'fa-cookie-bite', label: 'Snack' },
+            dinner: { color: '#7c3aed', cls: 'dinner', icon: 'fa-bowl-rice', label: 'Dinner' },
+            default: { color: '#4f46e5', cls: 'lunch', icon: 'fa-utensils', label: 'Meal' }
+        };
+
+        function getMealMeta(mealType) {
+            return MEAL_META[(mealType || '').toLowerCase()] || MEAL_META.default;
+        }
+
+        /** Get menu items for a given day + meal type from the weeklyMenu object */
+        function getMenuItems(dayOfWeek, mealType) {
+            if (!weeklyMenu[dayOfWeek]) return [];
+            const meal = (mealType || '').charAt(0).toUpperCase() + (mealType || '').slice(1).toLowerCase();
+            return weeklyMenu[dayOfWeek][meal] || weeklyMenu[dayOfWeek][mealType] || [];
+        }
+
+        /** Strip calorie suffix from item string, e.g. "Paneer Lababdar- (185 Kcal)" → "Paneer Lababdar" */
+        function cleanItemName(item) {
+            return item.replace(/[-–]?\s*\(.*?Kcal\)/gi, '').replace(/[-–]\s*$/, '').trim();
+        }
+
+        function setMealFilter(filter, btn) {
+            currentMealFilter = filter;
+            // Update button styles
+            document.querySelectorAll('.meal-filter-btn').forEach(b => {
+                b.className = 'meal-filter-btn';
+                if (b === btn) {
+                    const activeCls = filter === 'all' ? 'active' : `active-${filter}`;
+                    b.classList.add(activeCls);
+                }
+            });
+            renderAccuracyChart(allMenuAttendanceData);
+        }
+
+        async function loadAccuracyChart() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/analytics/menu-attendance?mess_id=' + CURRENT_MESS_ID);
+                allMenuAttendanceData = await res.json();
+                renderAccuracyChart(allMenuAttendanceData);
+                calculateMenuPopularity(allMenuAttendanceData);
+            } catch (e) {
+                console.error('Chart & Popularity failed to load', e);
+            }
+        }
+
+        // ==========================================
+        // MENU POPULARITY INTELLIGENCE
+        // ==========================================
+
+        function calculateMenuPopularity(data) {
+            const container = document.getElementById('menuPopularityContainer');
+            const badge = document.getElementById('popularityStatusBadge');
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--text-muted);"><i class="fa-solid fa-ban" style="display:block; font-size:24px; margin-bottom:8px; opacity:0.3;"></i>No data to analyze</div>`;
+                badge.innerText = "No Data";
+                return;
+            }
+
+            const itemStats = {};
+
+            // Aggregate variance (Actual vs Predicted) over all items served
+            data.forEach(record => {
+                if (!record.predicted || record.predicted === 0 || !record.actual) return;
+
+                const percentDiff = ((record.actual - record.predicted) / record.predicted) * 100;
+                const items = getMenuItems(record.day_of_week, record.meal_type);
+
+                items.forEach(rawItem => {
+                    const dish = cleanItemName(rawItem);
+                    // Skip generic/drink items for popularity if preferred, or keep them.
+                    if (dish.toLowerCase().includes("tea") || dish.toLowerCase().includes("coffee") || dish.toLowerCase() === "roti" || dish.toLowerCase() === "rice") return;
+
+                    if (!itemStats[dish]) {
+                        itemStats[dish] = { sumDiff: 0, count: 0 };
+                    }
+                    itemStats[dish].sumDiff += percentDiff;
+                    itemStats[dish].count += 1;
+                });
+            });
+
+            // Calculate averages
+            const dishAverages = Object.keys(itemStats).map(dish => {
+                return {
+                    dish: dish,
+                    avgDiff: itemStats[dish].sumDiff / itemStats[dish].count,
+                    count: itemStats[dish].count
+                };
+            }).filter(d => d.count > 0).sort((a, b) => b.avgDiff - a.avgDiff);
+
+            // Split into High Demand (Top 2-3 > 5%) and Low Interest (Bottom 2-3 < -5%)
+            const highDemand = dishAverages.filter(d => d.avgDiff > 0).slice(0, 3);
+            const lowInterest = dishAverages.filter(d => d.avgDiff < 0).reverse().slice(0, 3);
+
+            badge.innerText = "Live AI Match";
+            badge.className = "badge badge-primary";
+
+            let html = '';
+
+            if (highDemand.length > 0) {
+                html += `<div style="margin-bottom:8px; font-weight:700; font-size:13px; color:var(--text-main);"><i class="fa-solid fa-arrow-trend-up" style="color:var(--success); margin-right:6px;"></i> High Demand</div>`;
+                highDemand.forEach(item => {
+                    html += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); border-radius:8px; margin-bottom:6px; background:var(--success-bg);">
+                            <div style="font-weight:600; font-size:13px; color:var(--success);">${item.dish}</div>
+                            <span style="font-size:13px; font-weight:700; color:var(--success);">+${item.avgDiff.toFixed(1)}% <i class="fa-solid fa-users" style="margin-left:4px; font-size:10px;"></i></span>
+                        </div>
+                    `;
+                });
+            }
+
+            if (lowInterest.length > 0) {
+                html += `<div style="margin-top:16px; margin-bottom:8px; font-weight:700; font-size:13px; color:var(--text-main);"><i class="fa-solid fa-arrow-trend-down" style="color:var(--danger); margin-right:6px;"></i> Low Interest</div>`;
+                lowInterest.forEach(item => {
+                    html += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); border-radius:8px; margin-bottom:6px; background:var(--danger-bg);">
+                            <div style="font-weight:600; font-size:13px; color:var(--danger);">${item.dish}</div>
+                            <span style="font-size:13px; font-weight:700; color:var(--danger);">${item.avgDiff.toFixed(1)}% <i class="fa-solid fa-arrow-down" style="margin-left:4px; font-size:10px;"></i></span>
+                        </div>
+                    `;
+                });
+            }
+
+            if (highDemand.length === 0 && lowInterest.length === 0) {
+                html = `<div style="padding:20px; text-align:center; color:var(--text-muted); font-size:13px;">Attendance perfectly aligned with expectations.</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderAccuracyChart(allData) {
+            // Apply meal filter
+            const filtered = currentMealFilter === 'all'
+                ? allData
+                : allData.filter(r => (r.meal_type || '').toLowerCase() === currentMealFilter);
+
+            const noDataDiv = document.getElementById('chartNoData');
+
+            if (filtered.length === 0) {
+                if (accuracyChartInstance) { accuracyChartInstance.destroy(); accuracyChartInstance = null; }
+                noDataDiv.style.display = 'flex';
+                return;
+            }
+            noDataDiv.style.display = 'none';
+
+            // Build parallel arrays
+            const labels = filtered.map(r => {
+                const d = new Date(r.date);
+                return isNaN(d) ? r.date : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+            });
+            const predictedData = filtered.map(r => r.predicted || 0);
+            const actualData = filtered.map(r => r.actual || 0);
+            const menuContext = filtered.map(r => ({
+                rawDate: r.date,
+                dayOfWeek: r.day_of_week,
+                mealType: r.meal_type,
+                predicted: r.predicted,
+                actual: r.actual,
+                menuItems: getMenuItems(r.day_of_week, r.meal_type)
+            }));
+
+            const ctx = document.getElementById('accuracyChart').getContext('2d');
+            if (accuracyChartInstance) { accuracyChartInstance.destroy(); }
+
+            const gradientAI = ctx.createLinearGradient(0, 0, 0, 320);
+            gradientAI.addColorStop(0, 'rgba(79,70,229,0.15)');
+            gradientAI.addColorStop(1, 'rgba(79,70,229,0)');
+
+            const gradientActual = ctx.createLinearGradient(0, 0, 0, 320);
+            gradientActual.addColorStop(0, 'rgba(16,185,129,0.15)');
+            gradientActual.addColorStop(1, 'rgba(16,185,129,0)');
+
+            // Point colors per meal type
+            const pointColors = filtered.map(r => getMealMeta(r.meal_type).color);
+
+            accuracyChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Predicted',
+                            data: predictedData,
+                            borderColor: '#4f46e5',
+                            backgroundColor: gradientAI,
+                            borderWidth: 2.5,
+                            tension: 0.35,
+                            fill: true,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#4f46e5',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 8
+                        },
+                        {
+                            label: 'Actual Attendance',
+                            data: actualData,
+                            borderColor: '#10b981',
+                            backgroundColor: gradientActual,
+                            borderWidth: 2.5,
+                            tension: 0.35,
+                            fill: true,
+                            pointBackgroundColor: pointColors,
+                            pointBorderColor: '#10b981',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 9
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                usePointStyle: true, pointStyle: 'circle', boxWidth: 6,
+                                font: { family: "'Inter', sans-serif", size: 12 },
+                                color: '#64748b'
+                            }
+                        },
+                        tooltip: { enabled: false },  // we use our custom tooltip
+                    },
+                    onHover: (event, elements) => {
+                        if (elements.length > 0) {
+                            showMenuTooltip(event, elements[0].index, menuContext);
+                        } else {
+                            hideMenuTooltip();
+                        }
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            openDetailPanel(menuContext[elements[0].index]);
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9', drawBorder: false },
+                            ticks: { font: { family: "'Inter', sans-serif", size: 11 }, color: '#94a3b8' },
+                            border: { display: false }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: "'Inter', sans-serif", size: 11 }, color: '#94a3b8' },
+                            border: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // Fix: hide tooltip immediately when cursor leaves the chart canvas
+            const canvas = document.getElementById('accuracyChart');
+            canvas.onmouseleave = () => hideMenuTooltip();
+        }
+
+        // ==========================================
+        // CUSTOM TOOLTIP
+        // ==========================================
+
+        function showMenuTooltip(event, index, menuContext) {
+            const ctx = menuContext[index];
+            if (!ctx) return;
+
+            const meta = getMealMeta(ctx.mealType);
+            const tooltip = document.getElementById('menuTooltip');
+
+            // Date
+            const dateLabel = ctx.rawDate
+                ? new Date(ctx.rawDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' })
+                : ctx.rawDate;
+            document.getElementById('ttDate').textContent = dateLabel;
+
+            // Meal badge
+            const badge = document.getElementById('ttMealBadge');
+            badge.className = `tooltip-meal-badge ${meta.cls}`;
+            badge.innerHTML = `<i class="fa-solid ${meta.icon}"></i> ${meta.label}`;
+
+            // Menu tags (max 6 to keep tooltip compact)
+            const tagsContainer = document.getElementById('ttMenuTags');
+            const items = (ctx.menuItems || []).slice(0, 6);
+            tagsContainer.innerHTML = items.length
+                ? items.map(i => `<span class="menu-tag">${cleanItemName(i)}</span>`).join('')
+                : `<span class="menu-tag" style="opacity:0.5;">No menu data</span>`;
+
+            // Stats
+            document.getElementById('ttPredicted').textContent = (ctx.predicted ?? '–').toLocaleString();
+            document.getElementById('ttActual').textContent = (ctx.actual ?? '–').toLocaleString();
+
+            // Position (follow mouse)
+            const x = event.native.clientX;
+            const y = event.native.clientY;
+            const tw = tooltip.offsetWidth || 260;
+            const th = tooltip.offsetHeight || 180;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            let left = x + 16;
+            let top = y - 20;
+            if (left + tw > vw - 12) left = x - tw - 16;
+            if (top + th > vh - 12) top = vh - th - 12;
+
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.classList.add('visible');
+        }
+
+        function hideMenuTooltip() {
+            document.getElementById('menuTooltip').classList.remove('visible');
+        }
+
+        // ==========================================
+        // DETAIL SIDE PANEL
+        // ==========================================
+
+        function openDetailPanel(ctx) {
+            const meta = getMealMeta(ctx.mealType);
+
+            // Header
+            const icon = document.getElementById('panelMealIcon');
+            icon.style.background = meta.color + '22';
+            icon.style.color = meta.color;
+            icon.innerHTML = `<i class="fa-solid ${meta.icon}"></i>`;
+
+            document.getElementById('panelTitle').textContent = meta.label;
+            const dateStr = ctx.rawDate
+                ? new Date(ctx.rawDate).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })
+                : ctx.rawDate;
+            document.getElementById('panelSubtitle').textContent = dateStr;
+
+            // Stats
+            document.getElementById('panelPredicted').textContent = (ctx.predicted ?? '–').toLocaleString();
+            document.getElementById('panelActual').textContent = (ctx.actual ?? '–').toLocaleString();
+
+            // Attendance rate bar
+            const rate = ctx.predicted > 0 ? Math.round((ctx.actual / ctx.predicted) * 100) : 0;
+            document.getElementById('panelRate').textContent = rate + '%';
+            // Animate bar after slight delay so transition fires
+            document.getElementById('panelBarFill').style.width = '0%';
+            setTimeout(() => {
+                document.getElementById('panelBarFill').style.width = Math.min(rate, 100) + '%';
+            }, 80);
+
+            // Menu tags
+            const tagsContainer = document.getElementById('panelMenuTags');
+            const items = ctx.menuItems || [];
+            if (items.length === 0) {
+                tagsContainer.innerHTML = `<p style="font-size:13px; color:var(--text-muted);">No menu data available for this day.</p>`;
+            } else {
+                tagsContainer.innerHTML = items.map(i =>
+                    `<span class="panel-menu-tag ${meta.cls}">${cleanItemName(i)}</span>`
+                ).join('');
+            }
+
+            document.getElementById('panelOverlay').classList.add('open');
+            document.getElementById('menuDetailPanel').classList.add('open');
+            hideMenuTooltip();
+        }
+
+        function closeDetailPanel() {
+            document.getElementById('panelOverlay').classList.remove('open');
+            document.getElementById('menuDetailPanel').classList.remove('open');
+        }
+
+        // ==========================================
+        // CHAT FEATURE
+        // ==========================================
+
+        let CURRENT_NGO_ID = null;
+        let CURRENT_NGO_NAME = '';
+
+        // Render the NGO contact list in the left panel
+        async function renderNgoContactList() {
+            const contactListEl = document.getElementById('ngoContactList');
+            if (!contactListEl) return;
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/ngos');
+                const ngos = await res.json();
+                if (ngos.length === 0) {
+                    contactListEl.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">No NGOs registered yet.</div>';
+                    return;
+                }
+                contactListEl.innerHTML = ngos.map(ngo => `
+                    <div id="ngo-contact-${ngo.id}"
+                        onclick="openNgoChat(${ngo.id}, '${ngo.name.replace(/'/g, '&apos;')}')"
+                        style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; cursor:pointer; transition:background 0.15s; margin-bottom:4px;"
+                        onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background=(this.classList.contains('active-contact')?'var(--primary-light)':'transparent')">
+                        <div style="width:34px; height:34px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
+                            <i class="fa-solid fa-building-ngo"></i>
+                        </div>
+                        <div style="overflow:hidden;">
+                            <div style="font-weight:600; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ngo.name}</div>
+                            <div style="font-size:11px; color:var(--text-muted);">${ngo.location || 'NGO Partner'}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                contactListEl.innerHTML = '<div style="color:var(--danger); padding:12px; font-size:13px;">Failed to load NGO list</div>';
+            }
+        }
+
+        function openNgoChat(ngoId, ngoName) {
+            // Update active state in contact list
+            document.querySelectorAll('[id^="ngo-contact-"]').forEach(el => {
+                el.classList.remove('active-contact');
+                el.style.background = 'transparent';
+            });
+            const contactEl = document.getElementById('ngo-contact-' + ngoId);
+            if (contactEl) {
+                contactEl.classList.add('active-contact');
+                contactEl.style.background = 'var(--primary-light)';
+            }
+
+            CURRENT_NGO_ID = ngoId;
+            CURRENT_NGO_NAME = ngoName;
+
+            // Update chat header
+            document.getElementById('chatPartnerName').textContent = ngoName;
+
+            // Show input area, hide empty state
+            const emptyState = document.getElementById('chatEmptyState');
+            if (emptyState) emptyState.style.display = 'none';
+            const inputArea = document.getElementById('chatInputArea');
+            if (inputArea) inputArea.style.display = 'flex';
+
+            loadChatHistory();
+        }
+
+        async function loadChatHistory() {
+            if (!CURRENT_NGO_ID) return;
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/chat-history?mess_id=' + CURRENT_MESS_ID + '&ngo_id=' + CURRENT_NGO_ID);
+                const msgs = await res.json();
+                const container = document.getElementById('chatMessages');
+                container.innerHTML = '';
+                if (msgs.length === 0) {
+                    container.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text-muted);">
+                        <i class="fa-regular fa-comment-dots" style="font-size:32px; opacity:0.3; margin-bottom:8px;"></i>
+                        <p style="font-size:13px;">No messages yet. Start the conversation!</p></div>`;
+                    return;
+                }
+                msgs.forEach(m => appendChatMessage(m.sender_type || 'Admin', m.message, m.timestamp));
+            } catch (e) {
+                console.error("Failed to load chat history", e);
+            }
+        }
+
+        function appendChatMessage(sender, message, timestamp) {
+            const container = document.getElementById('chatMessages');
+            // Remove empty state if present
+            const innerEmpty = container.querySelector('[data-chat-empty]');
+            if (innerEmpty) innerEmpty.remove();
+
+            const isAdmin = sender === 'Admin';
+
+            const div = document.createElement('div');
+            div.className = `chat-msg ${isAdmin ? 'admin' : 'ngo'}`;
+
+            const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            div.innerHTML = `
+                ${!isAdmin ? `<div style="font-size:12px; font-weight:700; color:var(--primary); margin-bottom:6px;">${CURRENT_NGO_NAME || sender}</div>` : ''}
+                <div>${message}</div>
+                <div class="chat-meta">${timeStr} ${isAdmin ? '<i class="fa-solid fa-check-double" style="margin-left:4px;"></i>' : ''}</div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            let container = document.getElementById('chatMessages');
+            let indicator = document.getElementById('typingIndicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'typingIndicator';
+                indicator.className = 'typing-indicator';
+                indicator.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+                container.appendChild(indicator);
+            }
+            indicator.style.display = 'flex';
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            let indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.style.display = 'none';
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text || !CURRENT_NGO_ID) return;
+
+            input.value = '';
+            appendChatMessage('Admin', text, null);
+            showTypingIndicator();
+
+            try {
+                await fetch('http://127.0.0.1:8000/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mess_id: CURRENT_MESS_ID,
+                        ngo_id: CURRENT_NGO_ID,
+                        sender_type: 'Admin',
+                        message: text
+                    })
+                });
+                setTimeout(() => hideTypingIndicator(), 1500);
+            } catch (e) {
+                console.error("Chat send failed", e);
+                hideTypingIndicator();
+            }
+        }
+
+        function handleChatKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+
+        document.getElementById('predDate').valueAsDate = new Date();
+        document.getElementById('menuDateSelect').valueAsDate = new Date();
+
+        checkServer();
+        updateMenuDisplay();
+        renderNgoChecklist();
+        renderNgoContactList();
+
+        // ==========================================
+        // DATA EXPORT & REPORTS
+        // ==========================================
+
+        function showToast(message, type = 'info', duration = 3000, isHtml = false) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            let iconClass = 'fa-solid fa-circle-info';
+            if (type === 'success') iconClass = 'fa-solid fa-circle-check';
+            if (type === 'error') iconClass = 'fa-solid fa-circle-exclamation';
+
+            if (isHtml) {
+                toast.innerHTML = `
+                    <div class="toast-icon" style="align-self: flex-start; margin-top: 4px;"><i class="${iconClass}"></i></div>
+                    <div class="toast-content">${message}</div>
+                `;
+            } else {
+                toast.innerHTML = `
+                    <div class="toast-icon"><i class="${iconClass}"></i></div>
+                    <div class="toast-content">
+                        <div class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                `;
+            }
+
+            container.appendChild(toast);
+
+            // Reflow to enable transition
+            toast.offsetHeight;
+            toast.classList.add('show');
+
+            if (duration > 0) {
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+        }
+
+        async function exportAttendanceCSV() {
+            showToast("Generating Attendance CSV...", "info");
+            window.location.href = "http://127.0.0.1:8000/api/reports/attendance/csv";
+            setTimeout(() => showToast("Download started", "success"), 1000);
+        }
+
+        async function exportWasteCSV() {
+            showToast("Generating Waste Report...", "info");
+            window.location.href = "http://127.0.0.1:8000/api/reports/waste/csv";
+            setTimeout(() => showToast("Download started", "success"), 1000);
+        }
+
+        async function exportWeeklyCSV() {
+            showToast("Generating Weekly Summary...", "info");
+            window.location.href = "http://127.0.0.1:8000/api/reports/weekly/csv";
+            setTimeout(() => showToast("Download started", "success"), 1000);
+        }
+
+        async function clearAttendanceData() {
+            if (!confirm("Are you SURE you want to clear all attendance data? This cannot be undone.")) {
+                return;
+            }
+            try {
+                const res = await fetch("http://127.0.0.1:8000/api/settings/clear-attendance?mess_id=" + CURRENT_MESS_ID, {
+                    method: 'DELETE'
+                });
+                if (res.ok) {
+                    showToast("Attendance data cleared successfully.", "success");
+                    loadAttendanceLogs();
+                } else {
+                    showToast("Failed to clear data.", "error");
+                }
+            } catch (err) {
+                showToast("Server error while clearing data.", "error");
+            }
+        }
+    </script>
+</body>
+
+</html>

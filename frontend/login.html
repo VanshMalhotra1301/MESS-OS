@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Access | Mess OS</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            /* --- DYNAMIC THEME VARIABLES (Default: Admin Indigo) --- */
+            --primary: #4f46e5;
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            --primary-glow: rgba(79, 70, 229, 0.25);
+            --primary-hover: #4338ca;
+
+            --bg-color: #0b0f19;
+            /* Deep SaaS Dark */
+            --bg-grid: rgba(255, 255, 255, 0.03);
+
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-light: #f8fafc;
+
+            --input-border: #e2e8f0;
+            --input-bg: #ffffff;
+            --input-focus-bg: #ffffff;
+
+            --card-radius: 24px;
+            --anim-speed: 0.3s;
+        }
+
+        /* NGO Theme Override Class */
+        body.theme-ngo {
+            --primary: #ea580c;
+            --primary-gradient: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+            --primary-glow: rgba(234, 88, 12, 0.25);
+            --primary-hover: #c2410c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            min-height: 100vh;
+            width: 100vw;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+            transition: background-color 0.5s ease;
+            color: var(--text-main);
+        }
+
+        /* --- GLOBAL LAYOUT --- */
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 48px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-light);
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-brand i {
+            color: var(--primary);
+            transition: color var(--anim-speed);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-light);
+        }
+
+        .bottom-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 48px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #94a3b8;
+        }
+
+        .footer-copy {
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+
+        /* --- AMBIENT BACKGROUND ANIMATION --- */
+        .bg-grid-pattern {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, var(--bg-grid) 1px, transparent 1px), linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
+        .ambient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            opacity: 0.4;
+            animation: floatOrb 20s infinite alternate ease-in-out;
+            transition: background 0.6s ease;
+        }
+
+        .orb-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--primary);
+            top: -200px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: #38bdf8;
+            bottom: -200px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        @keyframes floatOrb {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(50px, 80px) scale(1.1);
+            }
+        }
+
+        /* --- MAIN CARD --- */
+        .main-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 100px 20px;
+            z-index: 10;
+        }
+
+        .login-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            min-height: 700px;
+            background: #ffffff;
+            border-radius: var(--card-radius);
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            animation: cardEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* --- LEFT SIDE (VISUAL) --- */
+        .visual-side {
+            flex: 1.1;
+            background: var(--bg-color);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            color: var(--text-light);
+            overflow: hidden;
+            transition: background 0.5s ease;
+            border-right: 1px solid var(--glass-border);
+        }
+
+        .visual-glass-panel {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.3);
+        }
+
+        .visual-content h1 {
+            font-size: 3rem;
+            line-height: 1.1;
+            font-weight: 800;
+            margin-bottom: 24px;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .visual-content p {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .feature-pills {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            padding: 8px 16px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .pill:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- RIGHT SIDE (FORM) --- */
+        .form-side {
+            flex: 1;
+            padding: 60px 80px;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Role Switcher & View Switcher */
+        .role-switch-container {
+            position: absolute;
+            top: 40px;
+            right: 60px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 12px;
+            display: flex;
+            gap: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .tab-switcher {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            background: #f8fafc;
+            padding: 6px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: var(--text-main);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .form-view {
+            display: none;
+        }
+
+        .form-view.active {
+            display: block;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-header {
+            margin-bottom: 32px;
+        }
+
+        .form-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .form-header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 24px;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .auth-divider::before {
+            margin-right: 15px;
+        }
+
+        .auth-divider::after {
+            margin-left: 15px;
+        }
+
+        /* Floating Inputs */
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 18px 20px 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            font-size: 1rem;
+            color: var(--text-main);
+            font-weight: 500;
+            outline: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .input-field:hover {
+            border-color: #cbd5e1;
+        }
+
+        .input-field:focus {
+            background: var(--input-focus-bg);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-glow), 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .input-label {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            background: transparent;
+        }
+
+        .input-field:focus~.input-label,
+        .input-field:not(:placeholder-shown)~.input-label {
+            top: 10px;
+            left: 18px;
+            transform: translateY(-50%) scale(0.8);
+            color: var(--primary);
+            font-weight: 600;
+            background: #ffffff;
+            padding: 0 4px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 4px;
+        }
+
+        .password-toggle:hover {
+            color: var(--text-main);
+        }
+
+        /* Actions */
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            font-size: 0.9rem;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .remember-me input {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .forgot-pass {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .forgot-pass:hover {
+            color: var(--primary);
+        }
+
+        /* Button */
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px var(--primary-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px var(--primary-glow);
+            filter: brightness(1.05);
+        }
+
+        .btn-submit:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 8px var(--primary-glow);
+        }
+
+        /* Trust Badges */
+        .trust-badges {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .trust-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .trust-badge i {
+            font-size: 1rem;
+            color: #cbd5e1;
+        }
+
+        /* Error Box */
+        .error-container {
+            background: #fef2f2;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #fecaca;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s;
+            height: 0;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-bottom: 0;
+            border: none;
+        }
+
+        .error-container.show {
+            opacity: 1;
+            transform: translateY(0);
+            height: auto;
+            padding: 16px;
+            margin-bottom: 24px;
+            border: 1px solid #fecaca;
+        }
+
+        /* Demo Credentials */
+        .demo-creds {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px dashed #cbd5e1;
+            transition: all 0.3s;
+        }
+
+        .demo-creds:hover {
+            border-color: #94a3b8;
+            background: #f1f5f9;
+        }
+
+        .demo-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .copy-btn {
+            cursor: pointer;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.8rem;
+            background: #e0e7ff;
+            padding: 4px 12px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #c7d2fe;
+        }
+
+        /* Animations */
+        @keyframes cardEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .login-wrapper {
+                flex-direction: column;
+                min-height: auto;
+                max-width: 600px;
+            }
+
+            .visual-side {
+                padding: 48px;
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .form-side {
+                padding: 48px;
+            }
+
+            .role-switch-container {
+                top: 24px;
+                right: 24px;
+            }
+
+            .top-navbar {
+                display: none;
+            }
+
+            /* Simplify on mobile */
+            .bottom-footer {
+                position: relative;
+                padding: 24px;
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .main-container {
+                padding: 40px 20px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .social-logins {
+                flex-direction: column;
+            }
+
+            .form-side {
+                padding: 40px 24px;
+            }
+
+            .visual-side {
+                padding: 40px 24px;
+            }
+
+            .visual-content h1 {
+                font-size: 2.2rem;
+            }
+
+            .trust-badges {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-grid-pattern"></div>
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+    <nav class="top-navbar">
+        <div class="nav-brand">
+            <i class="fa-solid fa-layer-group"></i>
+            <span>Mess OS</span>
+        </div>
+        <div class="nav-links">
+            <a href="#">Documentation</a>
+            <a href="#">System Status</a>
+            <a href="#">Contact Support</a>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <div class="login-wrapper">
+
+            <div class="visual-side">
+                <div class="visual-glass-panel">
+                    <div class="visual-content">
+                        <h1 id="visualTitle">Mess Admin<br>Pro</h1>
+                        <p id="visualDesc">Optimize inventory, reduce waste, and predict student consumption with 98%
+                            accuracy using our advanced AI models.</p>
+                    </div>
+
+                    <div class="feature-pills">
+                        <div class="pill"><i class="fa-solid fa-chart-line"></i> Predictive AI</div>
+                        <div class="pill"><i class="fa-solid fa-shield-halved"></i> SOC 2 Certified</div>
+                        <div class="pill"><i class="fa-solid fa-bolt"></i> Real-time Sync</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-side" style="padding: 40px 60px; overflow-y: auto;">
+
+                <div class="tab-switcher">
+                    <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+                    <button class="tab-btn" onclick="switchTab('register_mess')">Mess Admin</button>
+                    <button class="tab-btn" onclick="switchTab('register_ngo')">NGO Partner</button>
+                </div>
+
+                <div id="errorBox" class="error-container">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span id="errorMsg">Invalid credentials provided. Please try again.</span>
+                </div>
+
+                <div id="successBox" class="error-container"
+                    style="background: #ecfdf5; color: #065f46; border-color: #a7f3d0;">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Registration successful. You can now login.</span>
+                </div>
+
+                <!-- LOGIN VIEW -->
+                <div id="view-login" class="form-view active">
+                    <div class="form-header">
+                        <h2>Log in to your account</h2>
+                        <p>Welcome back. Enter your details to proceed.</p>
+                    </div>
+
+                    <form action="/login" method="POST" id="loginForm">
+                        <div class="input-group">
+                            <input type="email" id="email" name="email" class="input-field" placeholder=" " required>
+                            <label for="email" class="input-label">Email Address</label>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" id="password" name="password" class="input-field" placeholder=" "
+                                required>
+                            <label for="password" class="input-label">Password</label>
+                            <i class="fa-regular fa-eye password-toggle" onclick="togglePassword('password', this)"></i>
+                        </div>
+                        <div class="form-actions">
+                            <label class="remember-me"><input type="checkbox"> Remember me</label>
+                            <a href="#" class="forgot-pass">Forgot password?</a>
+                        </div>
+                        <button type="submit" class="btn-submit">Sign In <i
+                                class="fa-solid fa-arrow-right"></i></button>
+                    </form>
+
+                    <div class="demo-creds" style="margin-top: 24px;">
+                        <div
+                            style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.5px;">
+                            Quick Demo Access</div>
+                        <div class="demo-row" style="margin-bottom: 8px;">
+                            <span>admin@bennett.edu.in</span>
+                            <span class="copy-btn" onclick="fillCreds('admin@bennett.edu.in')">Admin Fill</span>
+                        </div>
+                        <div class="demo-row">
+                            <span>ngo@feedingindia.org</span>
+                            <span class="copy-btn" onclick="fillCreds('ngo@feedingindia.org')">NGO Fill</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REGISTER MESS VIEW -->
+                <div id="view-register_mess" class="form-view">
+                    <div class="form-header">
+                        <h2>Register Mess Organization</h2>
+                        <p>Create a new account for your Mess or Hostel.</p>
+                    </div>
+                    <form action="/register_mess" method="POST">
+                        <div class="input-group">
+                            <input type="text" name="admin_name" class="input-field" placeholder=" " required>
+                            <label class="input-label">Admin Full Name</label>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" name="org_name" class="input-field" placeholder=" " required>
+                            <label class="input-label">Organization / Mess Name</label>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" name="org_type" class="input-field" placeholder=" " required>
+                            <label class="input-label">Org Type (e.g. Hostel Mess)</label>
+                        </div>
+                        <div style="display: flex; gap: 16px;">
+                            <div class="input-group" style="flex: 1;">
+                                <input type="number" name="capacity" class="input-field" placeholder=" " required>
+                                <label class="input-label">Student Capacity</label>
+                            </div>
+                            <div class="input-group" style="flex: 1;">
+                                <input type="text" name="contact_phone" class="input-field" placeholder=" " required>
+                                <label class="input-label">Contact Phone</label>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" name="location" class="input-field" placeholder=" " required>
+                            <label class="input-label">Location (City, State)</label>
+                        </div>
+
+                        <div class="auth-divider">Account Credentials</div>
+
+                        <div class="input-group">
+                            <input type="email" name="email" class="input-field" placeholder=" " required>
+                            <label class="input-label">Email Address</label>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" id="reg_mess_pass" name="password" class="input-field"
+                                placeholder=" " required>
+                            <label class="input-label">Password</label>
+                            <i class="fa-regular fa-eye password-toggle"
+                                onclick="togglePassword('reg_mess_pass', this)"></i>
+                        </div>
+                        <button type="submit" class="btn-submit">Register <i
+                                class="fa-solid fa-building-user"></i></button>
+                    </form>
+                </div>
+
+                <!-- REGISTER NGO VIEW -->
+                <div id="view-register_ngo" class="form-view">
+                    <div class="form-header">
+                        <h2>Register NGO Partner</h2>
+                        <p>Create an NGO account to rescue surplus food.</p>
+                    </div>
+                    <form action="/register_ngo" method="POST">
+                        <div class="input-group">
+                            <input type="text" name="ngo_name" class="input-field" placeholder=" " required>
+                            <label class="input-label">NGO Name</label>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" name="description" class="input-field" placeholder=" " required>
+                            <label class="input-label">Organization Description</label>
+                        </div>
+                        <div style="display: flex; gap: 16px;">
+                            <div class="input-group" style="flex: 1;">
+                                <input type="number" step="0.1" name="service_radius" class="input-field"
+                                    placeholder=" " required>
+                                <label class="input-label">Service Radius (km)</label>
+                            </div>
+                            <div class="input-group" style="flex: 1;">
+                                <input type="text" name="contact_phone" class="input-field" placeholder=" " required>
+                                <label class="input-label">Contact Phone</label>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" name="location" class="input-field" placeholder=" " required>
+                            <label class="input-label">Location (City, State)</label>
+                        </div>
+
+                        <div class="auth-divider">Account Credentials</div>
+
+                        <div class="input-group">
+                            <input type="email" name="email" class="input-field" placeholder=" " required>
+                            <label class="input-label">Email Address</label>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" id="reg_ngo_pass" name="password" class="input-field" placeholder=" "
+                                required>
+                            <label class="input-label">Password</label>
+                            <i class="fa-regular fa-eye password-toggle"
+                                onclick="togglePassword('reg_ngo_pass', this)"></i>
+                        </div>
+                        <button type="submit" class="btn-submit" style="background: var(--primary-gradient);">Register
+                            <i class="fa-solid fa-hand-holding-heart"></i></button>
+                    </form>
+                </div>
+            </div>
+    </main>
+
+    <footer class="bottom-footer">
+        <div class="footer-copy">© 2026 Mess OS </div>
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Cookie Preferences</a>
+        </div>
+    </footer>
+
+    <script>
+        // --- CONFIGURATION ---
+        const visualData = {
+            login: {
+                title: "Mess Admin<br>Pro",
+                desc: "Optimize inventory, reduce waste, and predict student consumption with 98% accuracy using our advanced AI models.",
+                themeClass: "",
+                icon: "fa-leaf"
+            },
+            register_mess: {
+                title: "Scale Your<br>Operations",
+                desc: "Join our network of universities and catering services utilizing data to eliminate food waste.",
+                themeClass: "",
+                icon: "fa-building-user"
+            },
+            register_ngo: {
+                title: "NGO Command<br>Center",
+                desc: "Connect instantly with local mess facilities to rescue surplus food. Real-time logistics tracking and impact analytics.",
+                themeClass: "theme-ngo",
+                icon: "fa-hand-holding-heart"
+            }
+        };
+
+        function switchTab(tabId) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update views
+            document.querySelectorAll('.form-view').forEach(view => view.classList.remove('active'));
+            document.getElementById('view-' + tabId).classList.add('active');
+
+            // Update visual side
+            const data = visualData[tabId];
+            const titleEl = document.getElementById('visualTitle');
+            const descEl = document.getElementById('visualDesc');
+
+            titleEl.style.opacity = 0;
+            descEl.style.opacity = 0;
+
+            setTimeout(() => {
+                titleEl.innerHTML = data.title;
+                descEl.innerText = data.desc;
+
+                const brandIcon = document.querySelector('.nav-brand i');
+                if (brandIcon) brandIcon.className = `fa-solid ${data.icon}`;
+
+                titleEl.style.opacity = 1;
+                descEl.style.opacity = 1;
+            }, 300);
+
+            if (data.themeClass) document.body.classList.add(data.themeClass);
+            else document.body.classList.remove('theme-ngo');
+        }
+
+        function togglePassword(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                iconElement.classList.remove('fa-eye');
+                iconElement.classList.add('fa-eye-slash');
+            } else {
+                input.type = "password";
+                iconElement.classList.remove('fa-eye-slash');
+                iconElement.classList.add('fa-eye');
+            }
+        }
+
+        function fillCreds(email) {
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = "admin123";
+            document.querySelectorAll('.input-field').forEach(input => {
+                input.focus(); input.blur();
+            });
+            if (email.includes('ngo')) document.body.classList.add('theme-ngo');
+            else document.body.classList.remove('theme-ngo');
+        }
+
+        // Check for URL messages
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('error')) {
+            if (urlParams.get('error') === 'exists') {
+                document.getElementById('errorMsg').innerText = "An account with that email already exists!";
+            }
+            document.getElementById('errorBox').classList.add('show');
+        }
+        if (urlParams.has('success')) {
+            document.getElementById('successBox').classList.add('show');
+        }
+    </script>
+</body>
+
+</html>

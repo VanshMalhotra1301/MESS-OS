@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NGO Command Center | Feeding India</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        const CURRENT_NGO_ID = {{ user_id }};
+        const CURRENT_NGO_NAME = "{{ ngo_name }}";
+    </script>
+    <style>
+        :root {
+            /* Modernized Color Palette */
+            --primary: #f97316;
+            /* Vibrant Orange */
+            --primary-dark: #c2410c;
+            --primary-soft: #ffedd5;
+
+            --secondary: #0f172a;
+            /* Deep Slate */
+            --secondary-light: #334155;
+
+            --success: #10b981;
+            /* Emerald */
+            --success-soft: #d1fae5;
+
+            --danger: #ef4444;
+            /* Red */
+            --danger-soft: #fee2e2;
+
+            --bg-body: #f8fafc;
+            /* Clean Grey-White */
+            --surface: #ffffff;
+            --border: #e2e8f0;
+
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 260px;
+            background: var(--secondary);
+            color: white;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100%;
+            z-index: 50;
+        }
+
+        .brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+
+        .brand i {
+            color: var(--primary);
+            font-size: 1.4rem;
+        }
+
+        .nav-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #cbd5e1;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 32px 40px;
+            width: calc(100% - 260px);
+        }
+
+        /* SECTIONS */
+        .section-view {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .section-view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--danger-soft);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.1);
+            transition: 0.3s;
+        }
+
+        .status-badge.connected {
+            background: var(--success-soft);
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.1);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.4;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.4;
+            }
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* GRID SYSTEM */
+        .grid-dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        /* FEED STYLES */
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+        }
+
+        .live-tag {
+            background: var(--danger);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .feed-item {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feed-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--border);
+            transition: 0.2s;
+        }
+
+        .feed-item:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .feed-item:hover::before {
+            background: var(--primary);
+        }
+
+        .accept-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .accept-btn:hover {
+            background: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        /* IMPACT CARD */
+        .impact-card {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+            border: none;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 6px;
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: white;
+            height: 100%;
+            width: 65%;
+            border-radius: 10px;
+        }
+
+        /* IMPACT COUNTER STRIP */
+        .impact-counters {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .counter-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .counter-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.04) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .counter-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.12);
+        }
+
+        .counter-card .counter-icon {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+
+        .counter-card .counter-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--secondary);
+            letter-spacing: -0.04em;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            transition: color 0.3s;
+        }
+
+        .counter-card .counter-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .counter-card .counter-suffix {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-left: 2px;
+        }
+
+        @keyframes countBump {
+            0% {
+                transform: scale(1);
+            }
+
+            40% {
+                transform: scale(1.08);
+                color: var(--primary);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .counter-bump {
+            animation: countBump 0.45s ease;
+        }
+
+        /* TABLE STYLES */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .table-container {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .table-container th {
+            text-align: left;
+            padding: 16px 20px;
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-container td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .table-container tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-container tr:hover td {
+            background: #fcfcfc;
+        }
+
+        .pill {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .pill-success {
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        .pill-neutral {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        /* CHAT WIDGET */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: var(--surface);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: #f8fafc;
+        }
+
+        .chat-msg {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        .chat-msg.ngo {
+            align-self: flex-end;
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chat-msg.admin {
+            align-self: flex-start;
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chat-meta {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .chat-input-area {
+            padding: 16px;
+            background: white;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            outline: none;
+        }
+
+        .chat-input-area input:focus {
+            border-color: var(--primary);
+        }
+
+        .chat-input-area button {
+            padding: 0 20px;
+            border-radius: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .chat-input-area button:hover {
+            background: var(--primary-dark);
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* ===== TOAST NOTIFICATION ===== */
+        #toast-container {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .toast {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            background: #0f172a;
+            color: white;
+            padding: 16px 20px;
+            border-radius: 14px;
+            min-width: 300px;
+            max-width: 380px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+            pointer-events: all;
+            animation: toastIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            border-left: 4px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toast::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            animation: toastProgress linear forwards;
+        }
+
+        .toast.toast-success {
+            border-left-color: #10b981;
+        }
+
+        .toast.toast-info {
+            border-left-color: #3b82f6;
+        }
+
+        .toast.toast-chat {
+            border-left-color: #a855f7;
+        }
+
+        .toast-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .toast-body .toast-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+        }
+
+        .toast-body .toast-msg {
+            font-size: 0.8rem;
+            opacity: 0.75;
+            line-height: 1.4;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(40px) scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+                max-height: 100px;
+                margin-bottom: 0;
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(50px);
+                max-height: 0;
+                margin-bottom: -12px;
+            }
+        }
+
+        @keyframes toastProgress {
+            from {
+                width: 100%;
+            }
+
+            to {
+                width: 0%;
+            }
+        }
+
+        /* ===== PICKUP STATUS TRACKER ===== */
+        .pickup-tracker {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .tracker-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tracker-steps {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .tracker-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            position: relative;
+        }
+
+        .tracker-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: var(--border);
+            z-index: 0;
+            transition: background 0.5s ease;
+        }
+
+        .tracker-step.done:not(:last-child)::after {
+            background: var(--success);
+        }
+
+        .step-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            z-index: 1;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .tracker-step.done .step-dot {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+            animation: stepPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .tracker-step.active .step-dot {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.2);
+            animation: stepPulse 1.8s infinite;
+        }
+
+        .step-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-align: center;
+            line-height: 1.3;
+            transition: color 0.3s;
+        }
+
+        .tracker-step.done .step-label,
+        .tracker-step.active .step-label {
+            color: var(--text-main);
+        }
+
+        @keyframes stepPop {
+            0% {
+                transform: scale(0.6);
+            }
+
+            70% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes stepPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.2);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(249, 115, 22, 0.08);
+            }
+        }
+
+        /* ===== TYPING INDICATOR ===== */
+        .typing-indicator-bar {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .typing-indicator-bar .typing-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            background: #94a3b8;
+            border-radius: 50%;
+            display: inline-block;
+            animation: typingBounce 1.3s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0s;
+        }
+
+        @keyframes typingBounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0.5);
+                opacity: 0.4;
+            }
+
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* ===== PREMIUM FEED ITEM POLISH ===== */
+        .feed-item {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feed-item-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .feed-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--border);
+            transition: 0.2s;
+        }
+
+        .feed-item:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .feed-item:hover::before {
+            background: var(--primary);
+        }
+
+        /* --- MAP CUSTOMIZATION --- */
+        #map {
+            height: 100%;
+            width: 100%;
+            z-index: 1;
+            border-radius: 12px;
+        }
+
+        .custom-div-icon {
+            background: transparent;
+            border: none;
+        }
+
+        .marker-pin {
+            width: 30px;
+            height: 30px;
+            border-radius: 50% 50% 50% 0;
+            background: var(--primary);
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -15px 0 0 -15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .marker-pin.hub {
+            background: var(--secondary);
+        }
+
+        .marker-pin::after {
+            content: '';
+            width: 24px;
+            height: 24px;
+            margin: 3px 0 0 3px;
+            background: #fff;
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .marker-icon {
+            position: absolute;
+            width: 22px;
+            font-size: 14px;
+            left: 0;
+            right: 0;
+            margin: 8px auto;
+            text-align: center;
+            z-index: 10;
+            color: var(--primary);
+            transform: rotate(45deg);
+            /* Counteract parent rotation */
+        }
+
+        .marker-pin.hub .marker-icon {
+            color: var(--secondary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="sidebar">
+        <div class="brand">
+            <i class="fa-solid fa-utensils"></i> Feeding India
+        </div>
+
+        <div class="nav-label">Main Menu</div>
+        <div class="nav-item active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-grid-2"></i> Dashboard
+        </div>
+        <div class="nav-item" onclick="switchTab('history', this)"><i class="fa-solid fa-clock-rotate-left"></i>
+            Donation History</div>
+        <div class="nav-item" onclick="switchTab('logistics', this)"><i class="fa-solid fa-truck-fast"></i> Fleet &
+            Logistics</div>
+        <div class="nav-item" onclick="switchTab('analytics', this)"><i class="fa-solid fa-chart-pie"></i> Impact
+            Reports</div>
+        <div class="nav-item" onclick="switchTab('chat', this)">
+            <i class="fa-regular fa-comments"></i> Admin Support
+            <span
+                style="background:var(--danger); color:white; font-size:0.6rem; padding:2px 6px; border-radius:10px; margin-left:auto;">Live</span>
+        </div>
+
+        <div class="nav-label" style="margin-top: 24px;">System</div>
+        <div class="nav-item" onclick="switchTab('settings', this)"><i class="fa-solid fa-gear"></i> Settings</div>
+
+        <div
+            style="margin-top: auto; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <div style="font-size: 0.8rem; color: #94a3b8;">Logged in as</div>
+            <div style="font-weight: 600; color: white;" id="displayNgoName">{{ ngo_name }}</div>
+            <div
+                style="font-size: 0.7rem; color: var(--success); margin-top: 4px; display:flex; align-items:center; gap:6px;">
+                <span style="width:6px; height:6px; background:var(--success); border-radius:50%;"></span> Online
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+
+        <header class="header">
+            <div>
+                <h1>Command Center</h1>
+                <p>Zone A Distribution • <span style="color:var(--primary); font-weight:600;">Live Operations</span></p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 24px;">
+                <span id="clock"
+                    style="font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums;">12:00
+                    PM</span>
+                <div class="status-badge" id="connStatus">
+                    <div class="dot"></div>
+                    <span id="connText">Connecting...</span>
+                </div>
+                <div
+                    style="width: 40px; height: 40px; background: var(--secondary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size:0.9rem;">
+                    ZM</div>
+            </div>
+        </header>
+
+        <div id="dashboard" class="section-view active">
+
+            <!-- IMPACT COUNTER STRIP -->
+            <div class="impact-counters">
+                <div class="counter-card">
+                    <div class="counter-icon">🥘</div>
+                    <div>
+                        <span class="counter-value" id="ctr-meals">0</span><span class="counter-suffix">kg</span>
+                    </div>
+                    <div class="counter-label">Meals Rescued</div>
+                </div>
+                <div class="counter-card">
+                    <div class="counter-icon">🌍</div>
+                    <div>
+                        <span class="counter-value" id="ctr-co2">0</span><span class="counter-suffix">kg</span>
+                    </div>
+                    <div class="counter-label">CO₂ Saved</div>
+                </div>
+                <div class="counter-card">
+                    <div class="counter-icon">👨‍👩‍👧</div>
+                    <div>
+                        <span class="counter-value" id="ctr-families">0</span>
+                    </div>
+                    <div class="counter-label">Families Fed</div>
+                </div>
+                <div class="counter-card">
+                    <div class="counter-icon">🚚</div>
+                    <div>
+                        <span class="counter-value" id="ctr-pickups">0</span>
+                    </div>
+                    <div class="counter-label">Pickups Completed</div>
+                </div>
+            </div>
+
+            <div class="grid-dashboard">
+
+                <div class="card">
+                    <div class="feed-header">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <h3><i class="fa-solid fa-tower-broadcast" style="color:var(--primary)"></i> Live Alerts
+                            </h3>
+                            <span class="live-tag">LIVE</span>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-solid fa-wifi"></i>
+                            Auto-updating</span>
+                    </div>
+
+                    <div id="liveFeed">
+                        <div id="emptyMsg" style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                            <div
+                                style="background: #f1f5f9; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                <i class="fa-solid fa-satellite-dish" style="font-size: 1.5rem; opacity: 0.5;"></i>
+                            </div>
+                            <p style="font-weight: 500;">Scanning network for surplus food...</p>
+                            <p style="font-size: 0.8rem; margin-top: 4px;">New broadcasts will appear here instantly.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                    <div class="card impact-card">
+                        <h1 style="font-size: 2.5rem; margin-bottom: 4px;" id="impactTotal">--</h1>
+                        <p style="opacity: 0.9; font-size: 0.9rem;">Meals distributed (Total Kg)</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <p style="font-size: 0.75rem; margin-top: 12px; opacity: 0.8; font-weight: 500;">Live Impact
+                            Data</p>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="margin-bottom: 20px; font-size: 1.1rem;">Fleet Overview</h3>
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--bg-body);">
+                            <span style="color: var(--text-muted); font-size: 0.9rem;"><i class="fa-solid fa-truck"></i>
+                                Available</span>
+                            <span style="font-weight: 700; color: var(--success);">3 Vans</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--text-muted); font-size: 0.9rem;"><i class="fa-solid fa-road"></i>
+                                On Route</span>
+                            <span style="font-weight: 700; color: var(--primary);">1 Van</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="history" class="section-view">
+            <h2 style="margin-bottom: 20px; font-size: 1.5rem;">Donation History</h2>
+            <div class="table-wrapper">
+                <table class="table-container">
+                    <thead>
+                        <tr>
+                            <th>Time Logged</th>
+                            <th>Description</th>
+                            <th>Quantity (kg)</th>
+                            <th>Expiry Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding:30px; color:var(--text-muted);">Loading
+                                history...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="logistics" class="section-view">
+            <div class="card"
+                style="margin-bottom: 24px; padding: 0; overflow: hidden; height: 400px; position: relative;">
+                <div id="map"></div>
+                <div
+                    style="position: absolute; top: 15px; right: 15px; z-index: 400; background: white; padding: 8px 12px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 0.8rem; font-weight: 600;">
+                    <i class="fa-solid fa-location-dot" style="color: var(--secondary);"></i> Greater Noida Zone
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 20px;">Active Drivers</h3>
+                <div class="table-wrapper">
+                    <table class="table-container">
+                        <thead>
+                            <tr>
+                                <th>Driver Name</th>
+                                <th>Vehicle ID</th>
+                                <th>Status</th>
+                                <th>Current Job</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div style="font-weight:500;">Ramesh Kumar</div>
+                                </td>
+                                <td>DL-4C-1234</td>
+                                <td><span class="pill pill-warning">En Route</span></td>
+                                <td>Hostel 4 Pickup</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight:500;">Suresh Singh</div>
+                                </td>
+                                <td>DL-2A-9876</td>
+                                <td><span class="pill pill-success">Available</span></td>
+                                <td>-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="analytics" class="section-view">
+            <div class="grid-dashboard">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">Weekly Donations</h3>
+                    <canvas id="donationChart"></canvas>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">Top Donors</h3>
+                    <ul style="list-style: none;">
+                        <li
+                            style="padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 500;">Bennett Hostel 4</span>
+                            <span class="pill pill-neutral" id="donorQty">Loading...</span>
+                        </li>
+                        <li
+                            style="padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 500;">Dominos Sec-18</span>
+                            <span class="pill pill-neutral">120 kg</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="settings" class="section-view">
+            <h2 style="margin-bottom: 20px;">Profile Settings</h2>
+            <div class="card" style="max-width: 600px;">
+                <div style="margin-bottom: 20px;">
+                    <label
+                        style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--secondary);">Organization
+                        Name</label>
+                    <input type="text" value="Feeding India - Greater Noida Chapter"
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none;">
+                </div>
+                <div style="margin-bottom: 24px;">
+                    <label
+                        style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--secondary);">Contact
+                        Number</label>
+                    <input type="text" value="+91 98765 43210"
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none;">
+                </div>
+                <button class="accept-btn" style="background: var(--primary); justify-content: center;">Save
+                    Changes</button>
+            </div>
+        </div>
+
+        <div id="chat" class="section-view">
+            <div style="display:flex; gap:20px; height:560px;">
+
+                <!-- Left: Mess Organizations List -->
+                <div
+                    style="width:260px; flex-shrink:0; border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; background:#fff;">
+                    <div
+                        style="padding:16px 20px; border-bottom:1px solid var(--border); background:var(--primary); color:white;">
+                        <h3 style="font-size:14px; font-weight:700; margin-bottom:2px;"><i
+                                class="fa-solid fa-building"></i> Mess Organizations</h3>
+                        <p style="font-size:11px; opacity:0.85;">Click to open a conversation</p>
+                    </div>
+                    <div id="messContactList" style="flex:1; overflow-y:auto; padding:8px;">
+                        <div style="text-align:center; padding:24px; color:var(--secondary); font-size:13px;">
+                            Connecting...</div>
+                    </div>
+                </div>
+
+                <!-- Right: Chat Window -->
+                <div
+                    style="flex:1; border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; background:#fff;">
+                    <!-- Chat Header -->
+                    <div id="chatHeader"
+                        style="padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; background:#fafafa;">
+                        <div
+                            style="width:36px; height:36px; border-radius:50%; background:#e0e7ff; color:#4f46e5; display:flex; align-items:center; justify-content:center; font-size:16px;">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <div>
+                            <h3 id="chatPartnerName" style="font-size:14px; font-weight:700;">Select a Mess Organization
+                            </h3>
+                            <p style="font-size:11px; color:var(--secondary);">Private conversation</p>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div class="chat-messages" id="chatMessages">
+                        <div id="chatEmptyState"
+                            style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--secondary);">
+                            <i class="fa-regular fa-comments"
+                                style="font-size:40px; margin-bottom:12px; opacity:0.3;"></i>
+                            <p style="font-weight:500;">Select a Mess Organization to start chatting</p>
+                        </div>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="chat-input-area" id="chatInputArea" style="display:none;">
+                        <input type="text" id="chatInput" placeholder="Message Mess Admin..."
+                            onkeypress="handleChatKeyPress(event)" oninput="handleTyping()">
+                        <button onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script>
+        // --- 0. UI UTILITIES ---
+        function updateClock() {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        setInterval(updateClock, 1000);
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+
+            if (tabId === 'history') {
+                loadHistory();
+            }
+            if (tabId === 'analytics' || tabId === 'dashboard') {
+                loadAnalytics();
+            }
+            if (tabId === 'logistics') {
+                setTimeout(initMap, 100); // Small delay to ensure container is visible
+            }
+            if (tabId === 'chat') {
+                renderMessContactList();
+            }
+        }
+
+        // --- 1. WEBSOCKET LOGIC ---
+        const wsUrl = "ws://127.0.0.1:8000/ws";
+        let socket = null;
+
+        function connectWebSocket() {
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = function (e) {
+                const badge = document.getElementById('connStatus');
+                badge.classList.add('connected');
+                document.getElementById('connText').innerText = "System Online";
+            };
+
+            socket.onmessage = function (event) {
+                const message = JSON.parse(event.data);
+                if (message.type === "NEW_SURPLUS") {
+                    createAlertCard(message.data);
+                    loadAnalytics();
+                } else if (message.type === "CHAT_MESSAGE") {
+                    // Show typing indicator briefly before message appears
+                    if (message.data.sender !== 'NGO') {
+                        showNgoTyping();
+                        setTimeout(() => {
+                            hideNgoTyping();
+                            appendChatMessage(message.data.sender, message.data.message, message.data.timestamp);
+                            showToast('chat', '💬 New Message', message.data.message.substring(0, 60) + (message.data.message.length > 60 ? '...' : ''));
+                        }, 900);
+                    } else {
+                        appendChatMessage(message.data.sender, message.data.message, message.data.timestamp);
+                    }
+                }
+            };
+
+            socket.onclose = function (event) {
+                const badge = document.getElementById('connStatus');
+                badge.classList.remove('connected');
+                document.getElementById('connText').innerText = "Reconnecting...";
+                setTimeout(connectWebSocket, 5000);
+            };
+        }
+
+        // --- 2. ALERT CARD GENERATOR ---
+        function createAlertCard(data) {
+            document.getElementById('emptyMsg').style.display = 'none';
+            const feed = document.getElementById('liveFeed');
+            const alertId = 'alert_' + Date.now();
+
+            const html = `
+                <div class="feed-item" id="${alertId}">
+                    <div class="feed-item-top">
+                        <div>
+                            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; color: var(--secondary);">
+                                <i class="fa-solid fa-hotel" style="color: var(--primary);"></i> ${data.mess || 'Hostel Mess'}
+                            </h4>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 8px;">
+                                <i class="fa-regular fa-clock"></i> Expires: <strong>${data.expiry}</strong>
+                            </p>
+                            <div style="display: flex; gap: 8px;">
+                                <span class="pill pill-warning">${data.quantity} kg</span>
+                                <span class="pill pill-neutral">${data.description}</span>
+                            </div>
+                        </div>
+                        <button class="accept-btn" onclick="acceptDonation('${alertId}')">
+                            Accept <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            feed.insertAdjacentHTML('afterbegin', html);
+            showToast('info', '📡 New Surplus Alert!', `${data.quantity}kg of ${data.description} available from ${data.mess || 'Hostel Mess'}`);
+        }
+
+        function acceptDonation(id) {
+            const item = document.getElementById(id);
+            const btn = item.querySelector('.accept-btn');
+
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Accepted';
+            btn.style.background = 'var(--success)';
+            btn.disabled = true;
+
+            item.style.borderColor = 'var(--success)';
+
+            // Inject pickup status tracker
+            if (!item.querySelector('.pickup-tracker')) {
+                item.insertAdjacentHTML('beforeend', `
+                    <div class="pickup-tracker" id="tracker_${id}">
+                        <div class="tracker-label">
+                            <i class="fa-solid fa-route" style="color:var(--primary);"></i> Pickup Status
+                        </div>
+                        <div class="tracker-steps">
+                            <div class="tracker-step done" id="step_accepted_${id}">
+                                <div class="step-dot"><i class="fa-solid fa-check"></i></div>
+                                <div class="step-label">Accepted</div>
+                            </div>
+                            <div class="tracker-step active" id="step_driver_${id}">
+                                <div class="step-dot"><i class="fa-solid fa-truck"></i></div>
+                                <div class="step-label">Driver<br>Assigned</div>
+                            </div>
+                            <div class="tracker-step" id="step_picked_${id}">
+                                <div class="step-dot"><i class="fa-solid fa-box"></i></div>
+                                <div class="step-label">Picked<br>Up</div>
+                            </div>
+                            <div class="tracker-step" id="step_delivered_${id}">
+                                <div class="step-dot"><i class="fa-solid fa-circle-check"></i></div>
+                                <div class="step-label">Delivered</div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            }
+
+            showToast('success', '🎉 Donation Accepted!', 'Pickup request confirmed. Driver will be assigned shortly.');
+
+            // Simulate driver assigned after 3s
+            setTimeout(() => {
+                advanceTracker(id, 'driver');
+                showToast('info', '🚚 Driver Assigned', 'Ramesh Kumar is en route to pick up the donation.');
+            }, 3000);
+
+            // Simulate picked up after 8s
+            setTimeout(() => advanceTracker(id, 'picked'), 8000);
+
+            // Simulate delivered after 14s
+            setTimeout(() => {
+                advanceTracker(id, 'delivered');
+                showToast('success', '✅ Delivered!', 'Food has been successfully delivered to the distribution hub.');
+            }, 14000);
+        }
+
+        function advanceTracker(id, stage) {
+            const stages = ['accepted', 'driver', 'picked', 'delivered'];
+            const pos = stages.indexOf(stage);
+            stages.forEach((s, i) => {
+                const el = document.getElementById(`step_${s}_${id}`);
+                if (!el) return;
+                el.classList.remove('done', 'active');
+                if (i < pos) el.classList.add('done');
+                else if (i === pos) { el.classList.add('done'); }
+                else if (i === pos + 1) el.classList.add('active');
+            });
+            if (stage === 'delivered') {
+                const feedItem = document.getElementById(id);
+                if (feedItem) feedItem.style.background = '#f0fdf4';
+            }
+        }
+
+        // --- 3. FETCH HISTORY ---
+        async function loadHistory() {
+            const tbody = document.getElementById('historyTableBody');
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/ngo/history?ngo_id=' + CURRENT_NGO_ID);
+                const data = await res.json();
+                tbody.innerHTML = '';
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-muted);">No records found.</td></tr>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const dateObj = new Date(item.created_at);
+                    const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                    const row = `
+                        <tr>
+                            <td style="font-weight:500; color:var(--text-muted);">${dateStr}</td>
+                            <td style="font-weight:600;">${item.meal_description}</td>
+                            <td><span class="pill pill-neutral">${item.quantity_kg} kg</span></td>
+                            <td style="color:var(--danger); font-weight:500;">${item.expiry_time}</td>
+                            <td><span class="pill pill-success">Available</span></td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // --- 3b. ANIMATED COUNTER UTILITY ---
+        function animateCounter(elementId, targetValue, duration = 1400) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const start = parseInt(el.textContent.replace(/,/g, '')) || 0;
+            const range = targetValue - start;
+            if (range === 0) return;
+            const startTime = performance.now();
+
+            function easeOutQuart(t) {
+                return 1 - Math.pow(1 - t, 4);
+            }
+
+            function step(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = easeOutQuart(progress);
+                const current = Math.round(start + range * eased);
+                el.textContent = current.toLocaleString();
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    el.textContent = targetValue.toLocaleString();
+                    el.classList.remove('counter-bump');
+                    void el.offsetWidth; // force reflow
+                    el.classList.add('counter-bump');
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
+        function updateImpactCounters(totalKg) {
+            const kg = Math.round(totalKg);
+            const co2 = Math.round(totalKg * 2.5);   // ~2.5x CO₂ factor
+            const families = Math.round(totalKg * 4);      // ~4 families per kg batch
+            const pickups = Math.max(1, Math.round(totalKg / 15)); // ~15kg per pickup
+
+            animateCounter('ctr-meals', kg, 1600);
+            animateCounter('ctr-co2', co2, 1800);
+            animateCounter('ctr-families', families, 1400);
+            animateCounter('ctr-pickups', pickups, 1200);
+        }
+
+        // --- 4. LOAD REAL ANALYTICS ---
+        let donationChart = null;
+
+        async function loadAnalytics() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/ngo/analytics?ngo_id=' + CURRENT_NGO_ID);
+                const data = await res.json();
+
+                // 1. Update Text
+                document.getElementById('impactTotal').innerText = data.total_kg;
+                document.getElementById('donorQty').innerText = data.total_kg + ' kg';
+
+                // 1b. Animate impact counters
+                updateImpactCounters(parseFloat(data.total_kg) || 0);
+
+                // 2. Update Chart
+                const ctx = document.getElementById('donationChart').getContext('2d');
+
+                if (donationChart) donationChart.destroy();
+
+                donationChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.chart_labels,
+                        datasets: [{
+                            label: 'kg',
+                            data: data.chart_data,
+                            backgroundColor: '#f97316',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+                    }
+                });
+
+            } catch (e) {
+                console.error("Analytics Load Failed", e);
+            }
+        }
+
+        // --- 5. NEW: REAL MAP LOGIC (LEAFLET) ---
+        let mapInitialized = false;
+
+        function initMap() {
+            if (mapInitialized) return;
+
+            // Coordinates for Bennett University Area (Greater Noida)
+            const bennettCoords = [28.4528, 77.5160];
+
+            const map = L.map('map').setView(bennettCoords, 14);
+
+            // Add CartoDB Voyager Tiles (Clean, Professional Look)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+
+            // Define Custom Icons
+            const createCustomIcon = (iconClass, colorClass) => {
+                return L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div class='marker-pin ${colorClass}'><i class='${iconClass} marker-icon'></i></div>`,
+                    iconSize: [30, 42],
+                    iconAnchor: [15, 42]
+                });
+            }
+
+            const hqIcon = createCustomIcon("fa-solid fa-building-ngo", "hub");
+            const truckIcon = createCustomIcon("fa-solid fa-truck-fast", "fleet");
+
+            // 1. Add Bennett University Hub
+            L.marker(bennettCoords, { icon: hqIcon })
+                .addTo(map)
+                .bindPopup("<b>NGO Headquarters</b><br>Bennett University Zone")
+                .openPopup();
+
+            // 2. Add Moving Fleet (Simulation)
+            const fleetLocations = [
+                { coords: [28.4550, 77.5120], name: "Van 1 (Ramesh)" },
+                { coords: [28.4490, 77.5200], name: "Van 2 (Suresh)" },
+            ];
+
+            fleetLocations.forEach(loc => {
+                L.marker(loc.coords, { icon: truckIcon })
+                    .addTo(map)
+                    .bindPopup(`<b>${loc.name}</b><br>Status: En Route`);
+            });
+
+            mapInitialized = true;
+        }
+
+        // ===== TOAST SYSTEM =====
+        function showToast(type, title, message, duration = 4500) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icons = { success: '✅', info: '🔔', chat: '💬' };
+            toast.className = `toast toast-${type}`;
+            toast.style.setProperty('--dur', duration + 'ms');
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type] || '🔔'}</div>
+                <div class="toast-body">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-msg">${message}</div>
+                </div>
+            `;
+            toast.style.setProperty('animation-duration-toast-progress', duration + 'ms');
+            // apply toastProgress duration via inline style on ::after (workaround via CSS var)
+            toast.style.setProperty('--toast-dur', duration + 'ms');
+            container.appendChild(toast);
+            // Override ::after animation duration via a scoped class
+            const styleId = 'toastStyle_' + Date.now();
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = `#${styleId} { animation-duration: ${duration}ms; }`;
+            // Simpler: just use setTimeout to remove
+            setTimeout(() => {
+                toast.style.animation = 'toastOut 0.4s ease forwards';
+                toast.addEventListener('animationend', () => toast.remove(), { once: true });
+            }, duration);
+        }
+
+        // ===== TYPING INDICATOR =====
+        let ngoTypingTimer = null;
+        function showNgoTyping() {
+            const el = document.getElementById('ngoTypingIndicator');
+            if (el) {
+                el.style.display = 'flex';
+                const container = document.getElementById('chatMessages');
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+        function hideNgoTyping() {
+            const el = document.getElementById('ngoTypingIndicator');
+            if (el) el.style.display = 'none';
+        }
+        let typingTimer = null;
+        function handleTyping() {
+            // NGO side: show nothing locally; typing indicator is for incoming messages only
+        }
+
+        // --- 6. CHAT LOGIC ---
+        let CURRENT_MESS_ID = null;
+        let CURRENT_MESS_NAME = '';
+
+        async function renderMessContactList() {
+            const listEl = document.getElementById('messContactList');
+            if (!listEl) return;
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/messes');
+                const messes = await res.json();
+                if (messes.length === 0) {
+                    listEl.innerHTML = '<div style="text-align:center; padding:20px; color:var(--secondary); font-size:13px;">No mess organizations registered yet.</div>';
+                    return;
+                }
+                listEl.innerHTML = messes.map(mess => `
+                    <div id="mess-contact-${mess.id}"
+                        onclick="openMessChat(${mess.id}, '${mess.name.replace(/'/g, '&apos;')}')"
+                        style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; cursor:pointer; transition:background 0.15s; margin-bottom:4px;"
+                        onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background=(this.classList.contains('active-contact')?'#e0e7ff':'transparent')">
+                        <div style="width:34px; height:34px; border-radius:50%; background:#e0e7ff; color:#4f46e5; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
+                            <i class="fa-solid fa-building"></i>
+                        </div>
+                        <div style="overflow:hidden;">
+                            <div style="font-weight:600; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${mess.name}</div>
+                            <div style="font-size:11px; color:var(--secondary);">${mess.location || 'Mess Organization'}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                listEl.innerHTML = '<div style="color:var(--danger); padding:12px; font-size:13px;">Failed to load mess list</div>';
+            }
+        }
+
+        function openMessChat(messId, messName) {
+            document.querySelectorAll('[id^="mess-contact-"]').forEach(el => {
+                el.classList.remove('active-contact');
+                el.style.background = 'transparent';
+            });
+            const contactEl = document.getElementById('mess-contact-' + messId);
+            if (contactEl) {
+                contactEl.classList.add('active-contact');
+                contactEl.style.background = '#e0e7ff';
+            }
+
+            CURRENT_MESS_ID = messId;
+            CURRENT_MESS_NAME = messName;
+
+            document.getElementById('chatPartnerName').textContent = messName;
+
+            const emptyState = document.getElementById('chatEmptyState');
+            if (emptyState) emptyState.style.display = 'none';
+            const inputArea = document.getElementById('chatInputArea');
+            if (inputArea) inputArea.style.display = 'flex';
+
+            loadChatHistory();
+        }
+
+        async function fetchAvailableMesses() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/messes');
+                const messes = await res.json();
+                if (messes && messes.length > 0) {
+                    CURRENT_MESS_ID = messes[0].id;
+                }
+            } catch (e) {
+                console.error("Failed to load Messes", e);
+            }
+        }
+
+        async function loadChatHistory() {
+            if (!CURRENT_MESS_ID) return;
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/chat-history?mess_id=' + CURRENT_MESS_ID + '&ngo_id=' + CURRENT_NGO_ID);
+                const msgs = await res.json();
+                const container = document.getElementById('chatMessages');
+                container.innerHTML = '';
+                if (msgs.length === 0) {
+                    container.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--secondary);"><i class="fa-regular fa-comment-dots" style="font-size:32px; opacity:0.3; margin-bottom:8px;"></i><p style="font-size:13px;">No messages yet. Start the conversation!</p></div>`;
+                    return;
+                }
+                msgs.forEach(m => appendChatMessage(m.sender_type || 'NGO', m.message, m.timestamp));
+            } catch (e) {
+                console.error("Failed to load chat history", e);
+            }
+        }
+
+        function appendChatMessage(sender, message, timestamp) {
+            const container = document.getElementById('chatMessages');
+            const isNGO = sender === 'NGO';
+
+            const div = document.createElement('div');
+            div.className = `chat-msg ${isNGO ? 'ngo' : 'admin'}`;
+
+            const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            div.innerHTML = `
+                ${!isNGO ? `<div style="font-size:0.7rem; font-weight:700; color:#4f46e5; margin-bottom:4px;">${CURRENT_MESS_NAME || sender}</div>` : ''}
+                <div>${message}</div>
+                <div class="chat-meta">${timeStr}</div>
+            `;
+
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            try {
+                await fetch('http://127.0.0.1:8000/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mess_id: CURRENT_MESS_ID,
+                        ngo_id: CURRENT_NGO_ID,
+                        sender_type: 'NGO',
+                        message: text
+                    })
+                });
+                // Simulate admin typing indicator after sending
+                setTimeout(() => showNgoTyping(), 500);
+                setTimeout(() => hideNgoTyping(), 3500);
+            } catch (e) {
+                console.error("Chat send failed", e);
+            }
+        }
+
+        function handleChatKeyPress(e) {
+            if (e.key === 'Enter') sendChatMessage();
+        }
+
+        // --- 7. INIT ---
+        window.onload = function () {
+            connectWebSocket();
+            loadAnalytics();
+            updateImpactCounters(0);
+        }
+    </script>
+</body>
+
+</html>

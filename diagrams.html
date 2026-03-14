@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MESS OS - System Diagrams</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 40px;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #0056b3;
+            margin-top: 40px;
+        }
+
+        .diagram-container {
+            border: 1px solid #e1e4e8;
+            padding: 20px;
+            margin-bottom: 40px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+        }
+
+        .instruction {
+            background-color: #e6f2ff;
+            border-left: 4px solid #0056b3;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>MESS OS - System Diagrams</h1>
+
+        <div class="instruction">
+            <strong>How to use this:</strong> Below are the visual diagrams for your project's forms. You can easily
+            take screenshots of these diagrams using the Snipping Tool (Windows Key + Shift + S), or you can right-click
+            the rendered SVG and save/copy it if your browser supports it.
+        </div>
+
+        <h2>1. Overall Architecture Diagram</h2>
+        <p>This diagram shows the high-level components of the MESS OS, including the frontend dashboard, FastAPI
+            backend, AI layer, and databases.</p>
+        <div class="diagram-container">
+            <pre class="mermaid">
+flowchart TD
+    subgraph Client [Client Side]
+        Web[Admin Dashboard HTML/JS]
+        NGO_Portal[NGO Portal]
+    end
+
+    subgraph Server [Backend System]
+        FastAPI[FastAPI Application]
+        APIRoutes[API Routers]
+        Logic[Business Logic & Services]
+        
+        subgraph AILayer [AI & Machine Learning Layer]
+            PyTorch[PyTorch Integration]
+        end
+    end
+
+    subgraph Data [Data Storage]
+        DB[(Database)]
+        Models[Saved Models .pt]
+    end
+
+    Web <-->|REST API| FastAPI
+    NGO_Portal <-->|REST API| FastAPI
+    FastAPI --> APIRoutes
+    APIRoutes --> Logic
+    Logic <--> DB
+    Logic <--> PyTorch
+    PyTorch -.-> Models
+            </pre>
+        </div>
+
+        <h2>2. Use-Case Diagram</h2>
+        <p>This diagram illustrates the primary actors interacting with the system and their respective actions.</p>
+        <div class="diagram-container">
+            <pre class="mermaid">
+flowchart LR
+    Admin([Mess Admin])
+    NGO([NGO Representative])
+    AI{AI Engine}
+
+    Admin --> UC1(Monitor Metrics & Predictions)
+    Admin --> UC2(Analyze Menu Popularity)
+    Admin --> UC3(Manage & Coordinate Food Donations)
+
+    NGO --> UC4(View Surplus Food Availability)
+    NGO --> UC5(Track Live Pickup Status)
+
+    AI --> UC6(Forecast Expected Student Attendance)
+    AI --> UC7(Classify Waste Severity Levels)
+    
+    UC1 -.->|Relies on| U C6
+    UC3 -.->|Fulfills| UC4
+    UC6 -.->|Analyzes data for| Admin
+            </pre>
+        </div>
+
+        <h2>3. Activity Diagram (Core Flow)</h2>
+        <p>This diagram maps out the step-by-step process of meal prediction, waste handling, and surplus donation.</p>
+        <div class="diagram-container">
+            <pre class="mermaid">
+stateDiagram-v2
+    [*] --> ConfigureParameters
+    ConfigureParameters: Admin configures future meal events
+    
+    ConfigureParameters --> AIAnalysis
+    AIAnalysis: AI Engine analyzes historical attendance
+    
+    AIAnalysis --> GenerateForecast
+    GenerateForecast: Forecast expected attendance & potential waste
+    
+    state drop_check &lt;&lt;choice&gt;&gt;
+    GenerateForecast --> drop_check: Is attendance drop high?
+    
+    drop_check --> TriggerWarning: Yes (Significant Drop)
+    drop_check --> NormalOperation: No
+    
+    TriggerWarning --> AdminDecision: Admin reviews warning
+    
+    state action_check &lt;&lt;choice&gt;&gt;
+    AdminDecision --> action_check
+    
+    action_check --> AdjustPrep: Adjust food preparation amount
+    action_check --> DonateSurplus: Donate surplus to NGO
+    
+    AdjustPrep --> [*]
+    
+    DonateSurplus --> NGOPickup
+    NGOPickup: NGO portal tracks live pickup
+    NGOPickup --> [*]
+    
+    NormalOperation --> [*]
+            </pre>
+        </div>
+
+    </div>
+</body>
+
+</html>
