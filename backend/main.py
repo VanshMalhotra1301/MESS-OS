@@ -5,17 +5,16 @@ from sqlalchemy import func
 from pydantic import BaseModel
 from datetime import datetime
 import pandas as pd
-from typing import List
+from typing import List, Optional
 import io
 import csv
 from fastapi.responses import StreamingResponse
 
-# --- IMPORTS ---
-from database import get_db, engine
-from models import Base, SurplusPost, SurplusRecipient, AttendanceRecord, ChatMessage
-from websocket_manager import manager
-from ai_engine.predictor import predictor 
-
+# --- FIXED IMPORTS (IMPORTANT FOR DEPLOYMENT) ---
+from backend.database import get_db, engine
+from backend.models import Base, SurplusPost, SurplusRecipient, AttendanceRecord, ChatMessage
+from backend.websocket_manager import manager
+from backend.ai_engine.predictor import predictor
 # --- INIT DATABASE ---
 # This line ensures tables are created if they don't exist yet
 Base.metadata.create_all(bind=engine)
