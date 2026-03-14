@@ -7,3 +7,40 @@ python-dotenv
 python-magic
 
         
+# Web Framework
+fastapi
+uvicorn
+
+# Database / ORM
+sqlalchemy
+psycopg2-binary
+supabase
+
+# Data Processing
+pandas
+numpy
+
+# Machine Learning
+scikit-learn
+joblib
+
+# Environment Variables
+python-dotenv
+
+# File handling
+python-magic
+
+# Data validation
+pydantic
+
+# HTTP Requests
+requests
+
+# Date utilities
+python-dateutil
+
+# WebSockets (for real-time chat)
+websockets
+
+# Logging
+loguru
